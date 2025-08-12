@@ -1,0 +1,14 @@
+# deps & build
+node_modules
+build
+dist
+
+# env (절대 커밋 금지)
+.env
+.env.*
+.vercel
+
+# OS/IDE 잡파일
+.DS_Store
+Thumbs.db
+.vscode
