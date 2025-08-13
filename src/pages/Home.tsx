@@ -185,7 +185,7 @@ export default function StartPage() {
       >
         <header className="home-hero" aria-label="CVTI test title">
           <span className="title-eyebrow">GNPOL</span>
-          <h1 className="page-title">사기 유형 CVTI 테스트</h1>
+          <h1 className="page-title">피싱 유형 CVTI 테스트</h1>
           <p className="page-subtitle">지금 당신의 CVTI는 얼마나 안전한가요?</p>
           <div className="title-divider" />
         </header>

@@ -353,6 +353,14 @@ const Share: React.FC = () => {
               width: "100%",
               fontWeight: "bold",
             }}
+            type="button"
+            onClick={() =>
+              window.open(
+                "https://naver.me/F4LrWZ3U",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
           >
             📩 추첨 이벤트 응모하기
           </button>

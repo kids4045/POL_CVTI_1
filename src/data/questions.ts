@@ -180,15 +180,16 @@ export const questions = [
   {
     id: 13,
     iconType: "warning",
-    situation: "🎭 AI로 조작된 영상 속 지인이 뉴스에 등장했습니다.",
+    situation:
+      "📱 새벽, 친구가 '인증번호 좀 보내줘'라고 보냈고\n곧바로 '본인확인 링크' 문자가 도착했습니다.",
     choices: [
-      { text: "진짜인지 헷갈려서 친구에게 묻는다.", mbtiImpact: { P: 1 } },
-      { text: "딥페이크 여부를 검색해본다.", mbtiImpact: { G: 1 } },
+      { text: "일단 링크를 열어본다.", mbtiImpact: { P: 1 } },
+      { text: "친구에게 전화해 본인 확인부터 한다.", mbtiImpact: { G: 1 } },
       {
-        text: "영상의 디테일(눈동자, 배경 등)을 분석한다.",
+        text: "도메인·발신번호·맞춤법 등 이상 징후를 살핀다.",
         mbtiImpact: { N: 1 },
       },
-      { text: "그럴듯해도 일단 의심한다.", mbtiImpact: { J: 1 } },
+      { text: "인터넷·AI 등을 활용해 검색한다.", mbtiImpact: { J: 1 } },
       { text: "아무런 행동도 취하지 않는다.", mbtiImpact: { OSN: 1 } }, // SN 축 O
     ],
   },
