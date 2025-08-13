@@ -87,43 +87,41 @@ const Share: React.FC = () => {
   }, [cvti, scamType, risk, shareUrl]);
 
   const handleSave = useCallback(async () => {
-    if (!frameRef.current) return;
+    if (!frameRef.current) return; // ← cardRef 대신 frameRef
     setSaving(true);
 
-    // 1) 캡처 대상은 흰 카드 루트
-    const src = frameRef.current;
-
-    // 2) 오프스크린 복제
-    const clone = src.cloneNode(true) as HTMLElement;
-
-    // 복제본 안의 썸네일 루트에 width:100% 강제 (넘침 방지)
-    const cloneMount = clone.querySelector(
-      "[data-thumb-mount]"
+    // 컬러 카드만 집기 (없으면 프레임 전체)
+    const target = frameRef.current.querySelector(
+      "[data-capture-card]"
     ) as HTMLElement | null;
-    enforceChildWidth(cloneMount);
+    const src = target ?? frameRef.current;
 
-    // 실제 렌더 크기 기준으로 사이즈 지정
     const rect = src.getBoundingClientRect();
     const w = Math.ceil(rect.width);
     const h = Math.ceil(rect.height);
 
+    // 오프스크린 복제
+    const clone = src.cloneNode(true) as HTMLElement;
     clone.style.width = `${w}px`;
     clone.style.height = `${h}px`;
     clone.style.boxSizing = "border-box";
     clone.style.transform = "none";
     clone.style.margin = "0";
 
+    // 색 깨짐 완화: 불투명 배경 + 섀도우 제거
+    const computedBg = getComputedStyle(src).backgroundColor || "#ffffff";
+    clone.style.boxShadow = "none";
+
     const sandbox = document.createElement("div");
     sandbox.style.position = "fixed";
     sandbox.style.left = "-99999px";
     sandbox.style.top = "0";
-    sandbox.style.background = "#ffffff";
+    sandbox.style.background = computedBg;
     sandbox.style.zIndex = "-1";
     sandbox.appendChild(clone);
     document.body.appendChild(sandbox);
 
     try {
-      // 폰트 로드 대기
       // @ts-ignore
       await document.fonts?.ready;
     } catch {}
@@ -133,22 +131,34 @@ const Share: React.FC = () => {
     );
 
     try {
-      const canvas = await html2canvas(clone, {
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        allowTaint: false,
-        foreignObjectRendering: false,
-        scale: Math.min(2, window.devicePixelRatio || 1),
-        scrollX: 0,
-        scrollY: 0,
-        width: w,
-        height: h,
-        windowWidth: w,
-        windowHeight: h,
-      });
+      let dataUrl: string | null = null;
+      try {
+        const hti = await import("html-to-image");
+        dataUrl = await hti.toPng(clone, {
+          pixelRatio: 2,
+          cacheBust: true,
+          backgroundColor: computedBg,
+          style: { transform: "none" },
+        });
+      } catch {
+        const canvas = await html2canvas(clone, {
+          backgroundColor: computedBg,
+          useCORS: true,
+          allowTaint: false,
+          foreignObjectRendering: false,
+          scale: 2,
+          scrollX: 0,
+          scrollY: 0,
+          width: w,
+          height: h,
+          windowWidth: w,
+          windowHeight: h,
+        });
+        dataUrl = canvas.toDataURL("image/png");
+      }
 
       const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
+      a.href = dataUrl!;
       a.download = `CVTI_${cvti}_${scamType}.png`;
       a.click();
 

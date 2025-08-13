@@ -47,6 +47,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
 
   return (
     <div
+      data-capture-card
       style={{
         // 🔧 고정폭 600 → 반응형
         width: "100%",
