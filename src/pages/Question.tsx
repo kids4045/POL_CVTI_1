@@ -13,7 +13,7 @@ type ChoiceLike = {
   mbtiImpact?: CVTIImpact;
 };
 
-const QUESTION_BG = "../assets/test-background.png";
+const QUESTION_BG = `${process.env.PUBLIC_URL}/assets/test-background.png`;
 const clean = (s?: string) => (s ?? "").replace(/^🤔\s*/, "");
 
 const Question: React.FC = () => {
