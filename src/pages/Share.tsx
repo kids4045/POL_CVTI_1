@@ -1,5 +1,11 @@
 // src/pages/Share.tsx
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { motion } from "framer-motion";
@@ -54,23 +60,49 @@ const Share: React.FC = () => {
     return url.toString();
   }, [cvti, scamType, risk]);
 
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null); // 흰 카드 루트
+  const mountRef = useRef<HTMLDivElement | null>(null); // 썸네일 마운트
   const [saving, setSaving] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 캡처: html-to-image → 실패 시 html2canvas 폴백
+  // 썸네일 카드가 px 고정 폭을 갖고 있어도 강제로 100%에 맞추기
+  const enforceChildWidth = (host: HTMLElement | null) => {
+    if (!host) return;
+    const child = host.firstElementChild as HTMLElement | null;
+    if (!child) return;
+    child.style.width = "100%";
+    child.style.maxWidth = "100%";
+    child.style.boxSizing = "border-box";
+    // 내부 이미지가 있으면 안전망
+    child.querySelectorAll("img").forEach((img) => {
+      (img as HTMLImageElement).style.maxWidth = "100%";
+      (img as HTMLImageElement).style.height = "auto";
+      (img as HTMLImageElement).style.boxSizing = "border-box";
+    });
+  };
+
+  useEffect(() => {
+    enforceChildWidth(mountRef.current);
+  }, [cvti, scamType, risk, shareUrl]);
+
   const handleSave = useCallback(async () => {
-    if (!cardRef.current) return;
+    if (!frameRef.current) return;
     setSaving(true);
 
-    // 1) 캡처 대상(흰 카드 래퍼 - data-card-root)
-    const src =
-      (cardRef.current.querySelector("[data-card-root]") as HTMLElement) ||
-      (cardRef.current as HTMLElement);
+    // 1) 캡처 대상은 흰 카드 루트
+    const src = frameRef.current;
 
-    // 2) 뷰포트/스크롤 영향 제거용 오프스크린 복제
+    // 2) 오프스크린 복제
     const clone = src.cloneNode(true) as HTMLElement;
+
+    // 복제본 안의 썸네일 루트에 width:100% 강제 (넘침 방지)
+    const cloneMount = clone.querySelector(
+      "[data-thumb-mount]"
+    ) as HTMLElement | null;
+    enforceChildWidth(cloneMount);
+
+    // 실제 렌더 크기 기준으로 사이즈 지정
     const rect = src.getBoundingClientRect();
     const w = Math.ceil(rect.width);
     const h = Math.ceil(rect.height);
@@ -90,49 +122,33 @@ const Share: React.FC = () => {
     sandbox.appendChild(clone);
     document.body.appendChild(sandbox);
 
-    // 폰트 로드 대기
     try {
+      // 폰트 로드 대기
       // @ts-ignore
       await document.fonts?.ready;
     } catch {}
 
-    // 렌더 안정화
     await new Promise((r) =>
       requestAnimationFrame(() => requestAnimationFrame(r))
     );
 
     try {
-      let dataUrl: string | null = null;
-
-      // 3) html-to-image 우선
-      try {
-        const hti = await import("html-to-image");
-        dataUrl = await hti.toPng(clone, {
-          pixelRatio: Math.min(2, window.devicePixelRatio || 1),
-          cacheBust: true,
-          backgroundColor: "#ffffff",
-          style: { transform: "none" },
-        });
-      } catch {
-        // 4) 폴백: html2canvas
-        const canvas = await html2canvas(clone, {
-          backgroundColor: "#ffffff",
-          useCORS: true,
-          allowTaint: false,
-          foreignObjectRendering: false,
-          scale: Math.min(2, window.devicePixelRatio || 1),
-          scrollX: 0,
-          scrollY: 0,
-          width: w,
-          height: h,
-          windowWidth: w,
-          windowHeight: h,
-        });
-        dataUrl = canvas.toDataURL("image/png");
-      }
+      const canvas = await html2canvas(clone, {
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        allowTaint: false,
+        foreignObjectRendering: false,
+        scale: Math.min(2, window.devicePixelRatio || 1),
+        scrollX: 0,
+        scrollY: 0,
+        width: w,
+        height: h,
+        windowWidth: w,
+        windowHeight: h,
+      });
 
       const a = document.createElement("a");
-      a.href = dataUrl!;
+      a.href = canvas.toDataURL("image/png");
       a.download = `CVTI_${cvti}_${scamType}.png`;
       a.click();
 
@@ -185,12 +201,11 @@ const Share: React.FC = () => {
         gap: 14,
         boxSizing: "border-box",
         textAlign: "center",
-        overflowX: "hidden", // ✅ 가로 넘침 방지
+        overflowX: "hidden",
       }}
     >
       {/* 캡처 카드 프리뷰 */}
       <motion.div
-        ref={cardRef}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
@@ -200,116 +215,130 @@ const Share: React.FC = () => {
           justifyContent: "center",
         }}
       >
-        {/* ✅ 캡처 대상(흰 카드) 래퍼: data-card-root 부여 & 폭 고정 */}
+        {/* ✅ 공통 래퍼: 프레임/썸네일 모두 이 폭을 공유 */}
         <div
-          data-card-root
           style={{
             width: "min(92vw, 480px)",
             maxWidth: "100%",
-            boxSizing: "border-box",
-            display: "inline-block",
             margin: "0 auto",
-            borderRadius: 20,
-            background: "#ffffff",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            padding: "18px 18px 20px",
-            textAlign: "center",
-            WebkitFontSmoothing: "antialiased",
-            MozOsxFontSmoothing: "grayscale",
           }}
         >
+          {/* ✅ 흰 프레임 카드 (캡처 루트) */}
           <div
+            ref={frameRef}
+            data-card-root
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "6px 10px",
-              borderRadius: 999,
-              background: "#f1f5f9",
-              fontSize: 12,
-              marginBottom: 8,
-              whiteSpace: "nowrap",
+              width: "100%",
+              maxWidth: "100%",
+              boxSizing: "border-box",
+              borderRadius: 20,
+              background: "#ffffff",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+              padding: "18px 18px 20px",
+              textAlign: "center",
+              WebkitFontSmoothing: "antialiased",
+              MozOsxFontSmoothing: "grayscale",
             }}
           >
-            <span>CVTI</span>
-            <strong>{cvti}</strong>
-          </div>
-
-          <h2
-            style={{
-              fontSize: 22,
-              marginBottom: 8,
-              wordBreak: "keep-all",
-            }}
-          >
-            사기 성향 유형: <strong>{scamType}</strong>{" "}
-            <span style={{ fontSize: 22 }}>
-              {scamTypeIcons[scamType as keyof typeof scamTypeIcons]}
-            </span>
-          </h2>
-
-          {/* 썸네일 카드 본문 */}
-          <ThumbnailCaptureCard
-            mbti={cvti}
-            scamType={scamType}
-            shareUrl={shareUrl}
-            risk={risk}
-          />
-
-          {/* 위험도 바 */}
-          <div style={{ margin: "12px auto 0", width: "100%" }}>
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 13,
-                marginBottom: 6,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 10px",
+                borderRadius: 999,
+                background: "#f1f5f9",
+                fontSize: 12,
+                marginBottom: 8,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span>CVTI</span>
+              <strong>{cvti}</strong>
+            </div>
+
+            <h2
+              style={{
+                fontSize: 22,
+                marginBottom: 8,
+                wordBreak: "keep-all",
+              }}
+            >
+              사기 성향 유형: <strong>{scamType}</strong>{" "}
+              <span style={{ fontSize: 22 }}>
+                {scamTypeIcons[scamType as keyof typeof scamTypeIcons]}
+              </span>
+            </h2>
+
+            {/* ✅ 썸네일 카드 마운트 (폭 강제 대상) */}
+            <div ref={mountRef} data-thumb-mount style={{ width: "100%" }}>
+              <ThumbnailCaptureCard
+                mbti={cvti}
+                scamType={scamType}
+                shareUrl={shareUrl}
+                risk={risk}
+              />
+            </div>
+
+            {/* 위험도 바 */}
+            <div style={{ margin: "12px auto 0", width: "100%" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  marginBottom: 6,
+                  whiteSpace: "nowrap",
+                  wordBreak: "keep-all",
+                }}
+              >
+                <strong>위험도</strong>
+                <span>{risk}%</span>
+              </div>
+              <div
+                style={{
+                  height: 10,
+                  borderRadius: 999,
+                  background: "rgba(0,0,0,0.08)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${risk}%`,
+                    height: "100%",
+                    background:
+                      risk >= 67
+                        ? "#ef4444"
+                        : risk >= 34
+                        ? "#f59e0b"
+                        : "#10b981",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 하단 마크 */}
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                justifyContent: "center",
+                marginTop: 12,
                 whiteSpace: "nowrap",
                 wordBreak: "keep-all",
               }}
             >
-              <strong>위험도</strong>
-              <span>{risk}%</span>
-            </div>
-            <div
-              style={{
-                height: 10,
-                borderRadius: 999,
-                background: "rgba(0,0,0,0.08)",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: `${risk}%`,
-                  height: "100%",
-                  background:
-                    risk >= 67 ? "#ef4444" : risk >= 34 ? "#f59e0b" : "#10b981",
-                }}
+              <img
+                src="/assets/police-logo.png"
+                alt="경남경찰청 로고"
+                style={{ height: 22 }}
               />
+              <span style={{ fontSize: 13, color: "#475569" }}>
+                경남경찰청과{"\u00A0"}함께하는{"\u00A0"}#사기1초전
+              </span>
             </div>
-          </div>
-
-          {/* 하단 마크 */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              justifyContent: "center",
-              marginTop: 12,
-              whiteSpace: "nowrap",
-              wordBreak: "keep-all",
-            }}
-          >
-            <img
-              src="/assets/police-logo.png"
-              alt="경남경찰청 로고"
-              style={{ height: 22 }}
-            />
-            <span style={{ fontSize: 13, color: "#475569" }}>
-              경남경찰청과{"\u00A0"}함께하는{"\u00A0"}#사기1초전
-            </span>
           </div>
         </div>
       </motion.div>
@@ -342,7 +371,6 @@ const Share: React.FC = () => {
           📸 썸네일 이미지 저장
         </button>
 
-        {/* 외부 링크만 열도록 단순화 */}
         <button
           className="neon-yellow is-pulsing"
           style={{
@@ -414,7 +442,7 @@ const Share: React.FC = () => {
         </button>
 
         <a
-          href={reportUrl}
+          href="https://ecrm.police.go.kr/minwon/main"
           target="_blank"
           rel="noreferrer"
           style={{ display: "block" }}
@@ -436,7 +464,7 @@ const Share: React.FC = () => {
         </a>
 
         <a
-          href={policeUrl}
+          href="https://www.police.go.kr/index.do"
           target="_blank"
           rel="noreferrer"
           style={{ display: "block" }}

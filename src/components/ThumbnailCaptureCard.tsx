@@ -1,4 +1,3 @@
-// src/components/ThumbnailCaptureCard.tsx
 import React from "react";
 import QRCode from "react-qr-code";
 import { ScamTypeKey } from "../data/cvtiToScamType";
@@ -49,7 +48,9 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
   return (
     <div
       style={{
-        width: 600,
+        // 🔧 고정폭 600 → 반응형
+        width: "100%",
+        maxWidth: "100%",
         backgroundColor: background,
         borderRadius: 24,
         padding: "24px 22px 26px",
@@ -59,6 +60,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
         textAlign: "center",
         boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
         color: "#111",
+        overflow: "hidden", // 내부 요소가 넘칠 때 안전망
       }}
     >
       {/* 상단 소개 블록 */}
@@ -125,7 +127,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* 🔧 세로 스택: 위험도(단독 줄) ↓ QR ↓ 해시태그 */}
+      {/* 세로 스택: 위험도 ↓ QR ↓ 해시태그 */}
       <div
         style={{
           marginTop: 6,
@@ -134,7 +136,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
           alignItems: "center",
         }}
       >
-        {/* 위험도: 슬로건 바로 아래, 단독 줄 */}
+        {/* 위험도 */}
         <div
           style={{
             display: "flex",
@@ -154,7 +156,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
           </strong>
         </div>
 
-        {/* QR: 약 70% 크기 */}
+        {/* QR */}
         <div style={{ display: "block" }}>
           <QRCode value={shareUrl} size={126} />
           <div style={{ fontSize: 14, color: "#555", marginTop: 10 }}>
@@ -165,8 +167,11 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
               marginTop: 10,
               fontSize: 14,
               color: "#475569",
-              whiteSpace: "nowrap", // 해시태그 한 줄 고정
-              wordBreak: "keep-all",
+              // 한 줄 유지 + 말줄임 → 가로 넘침 방지
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "100%",
             }}
           >
             #사기예방 #CVTI테스트 #{scamType.replace(/\s/g, "")} #경찰청

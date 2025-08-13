@@ -551,3 +551,11 @@ body {
       0 14px 32px rgba(0, 0, 0, 0.22);
   }
 }
+
+html,
+body {
+  overflow-x: hidden;
+}
+.share-page * {
+  box-sizing: border-box;
+} /* 폭 계산 안정화 */
