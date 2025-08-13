@@ -84,8 +84,32 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
         }}
       >
-        <div style={{ fontSize: fs(28, 22), fontWeight: 900, marginBottom: 4 }}>
-          사기 성향 유형: <span>{scamType}</span> <span>{icon}</span>
+        <div
+          style={{
+            fontSize: fs(28, 22),
+            fontWeight: 900,
+            marginBottom: 4,
+            lineHeight: 1.25,
+          }}
+        >
+          <span>사기 성향 유형:</span>
+          {isMobile ? (
+            <>
+              <br />
+              <span style={{ whiteSpace: "nowrap", wordBreak: "keep-all" }}>
+                {scamType}
+              </span>{" "}
+              <span>{icon}</span>
+            </>
+          ) : (
+            <>
+              {" "}
+              <span style={{ whiteSpace: "nowrap", wordBreak: "keep-all" }}>
+                {scamType}
+              </span>{" "}
+              <span>{icon}</span>
+            </>
+          )}
         </div>
 
         <div

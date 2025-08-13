@@ -274,15 +274,37 @@ const Share: React.FC = () => {
 
             <h2
               style={{
-                fontSize: isMobile ? 18 : 22, // ← 모바일에서 축소
+                fontSize: isMobile ? 18 : 22,
                 marginBottom: 8,
-                wordBreak: "keep-all",
+                lineHeight: 1.25,
               }}
             >
-              사기 성향 유형: <strong>{scamType}</strong>{" "}
-              <span style={{ fontSize: isMobile ? 18 : 22 }}>
-                {scamTypeIcons[scamType as keyof typeof scamTypeIcons]}
-              </span>
+              <span>사기 성향 유형:</span>
+              {isMobile ? (
+                <>
+                  <br />
+                  <strong
+                    style={{ whiteSpace: "nowrap", wordBreak: "keep-all" }}
+                  >
+                    {scamType}
+                  </strong>{" "}
+                  <span style={{ fontSize: isMobile ? 18 : 22 }}>
+                    {scamTypeIcons[scamType as keyof typeof scamTypeIcons]}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {" "}
+                  <strong
+                    style={{ whiteSpace: "nowrap", wordBreak: "keep-all" }}
+                  >
+                    {scamType}
+                  </strong>{" "}
+                  <span style={{ fontSize: isMobile ? 18 : 22 }}>
+                    {scamTypeIcons[scamType as keyof typeof scamTypeIcons]}
+                  </span>
+                </>
+              )}
             </h2>
 
             {/* ✅ 썸네일 카드 마운트 (폭 강제 대상) */}
