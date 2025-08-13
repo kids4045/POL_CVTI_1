@@ -12,3 +12,8 @@ dist
 .DS_Store
 Thumbs.db
 .vscode
+node_modules
+build
+.env
+.env.*
+.vercel

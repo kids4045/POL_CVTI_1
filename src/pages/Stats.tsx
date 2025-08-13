@@ -1,11 +1,17 @@
+// src/pages/Stats.tsx
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+
+// Firestore
 import { db } from "../firebase/firestore";
 import {
   collection,
   getDocs,
-  QueryDocumentSnapshot,
   DocumentData,
+  Timestamp,
 } from "firebase/firestore";
+
+// Chart
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,9 +21,18 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartOptions,
 } from "chart.js";
+
+// CVTI → ScamType 변환
 import { ScamTypeKey, getScamTypeFromCVTI } from "../data/cvtiToScamType";
-import { useSearchParams } from "react-router-dom";
+
+type ResultDoc = {
+  cvti?: string;
+  mbti?: string;
+  scamType?: string;
+  timestamp?: unknown;
+};
 
 ChartJS.register(
   CategoryScale,
@@ -42,19 +57,28 @@ const ALL_TYPES: ScamTypeKey[] = [
 ];
 
 const TYPE_COLORS: Record<ScamTypeKey, string> = {
-  감정공감형: "#f87171", // red-400
-  절차맹신형: "#a78bfa", // violet-400
-  직진반응형: "#fb923c", // orange-400
-  실험과잉형: "#38bdf8", // sky-400
-  신뢰우선형: "#ede7f6", // fallback? but keep consistent style—change to hex
-  회피수동형: "#9ca3af", // gray-400
-  정보과신형: "#60a5fa", // blue-400
-  선한낙관형: "#facc15", // yellow-400
-  무관심형: "#94a3b8", // slate-400
+  감정공감형: "#f87171",
+  절차맹신형: "#a78bfa",
+  직진반응형: "#fb923c",
+  실험과잉형: "#38bdf8",
+  신뢰우선형: "#8b5cf6",
+  회피수동형: "#9ca3af",
+  정보과신형: "#60a5fa",
+  선한낙관형: "#facc15",
+  무관심형: "#94a3b8",
 };
 
-// 신뢰우선형 색 보정(위에서 연한색을 넣었으면 차트가 흐릴 수 있어 교체)
-TYPE_COLORS["신뢰우선형"] = "#8b5cf6"; // violet-500
+// Timestamp 다양한 형태 안전 변환
+function toSeconds(ts: unknown): number | null {
+  if (!ts) return null;
+  if (ts instanceof Timestamp) return ts.seconds;
+  if (typeof (ts as any).seconds === "number") return (ts as any).seconds;
+  if (typeof (ts as any).toDate === "function") {
+    return Math.floor((ts as any).toDate().getTime() / 1000);
+  }
+  if (ts instanceof Date) return Math.floor(ts.getTime() / 1000);
+  return null;
+}
 
 const Stats: React.FC = () => {
   const [params] = useSearchParams();
@@ -87,27 +111,26 @@ const Stats: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const snapshot = await getDocs(collection(db, "results"));
+      const snap = await getDocs(collection(db, "results"));
 
-      // 누적용 임시 객체
       const codeMap: Record<string, number> = {};
       const typeMap: Record<ScamTypeKey, number> = Object.fromEntries(
         ALL_TYPES.map((t) => [t, 0])
       ) as Record<ScamTypeKey, number>;
 
-      // 최신 문서 추적
-      let latestDoc: QueryDocumentSnapshot<DocumentData> | null = null;
+      // 최신 데이터(스냅샷 아님, data만 보관)
       let latestSeconds = -1;
+      let latestData: ResultDoc | null = null;
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+      snap.forEach((doc) => {
+        const data = doc.data() as ResultDoc;
 
-        // 저장 필드: 신규(cvti), 레거시(mbti) 모두 수용
+        // 코드 누적
         const cvtiRaw: string = String(data.cvti ?? data.mbti ?? "");
         if (cvtiRaw) {
           codeMap[cvtiRaw] = (codeMap[cvtiRaw] || 0) + 1;
 
-          // 저장된 scamType이 있으면 먼저 사용, 없으면 계산
+          // 유형 결정(저장값 우선, 없으면 계산)
           let t: ScamTypeKey | null = null;
           if (
             data.scamType &&
@@ -118,47 +141,35 @@ const Stats: React.FC = () => {
             const calc = getScamTypeFromCVTI(cvtiRaw);
             if (calc && ALL_TYPES.includes(calc)) t = calc;
           }
-          if (t) {
-            typeMap[t] = (typeMap[t] || 0) + 1;
-          }
+          if (t) typeMap[t] = (typeMap[t] || 0) + 1;
         }
 
-        // 최신 타임스탬프 계산 (Timestamp.now()로 저장된 구조 가정)
-        const ts = data.timestamp;
-        const sec: number =
-          typeof ts?.seconds === "number"
-            ? ts.seconds
-            : typeof ts?.toDate === "function"
-            ? Math.floor(ts.toDate().getTime() / 1000)
-            : -1;
-
-        if (sec > latestSeconds) {
-          latestSeconds = sec;
-          latestDoc = doc;
+        // 최신 타임스탬프 추적
+        const secVal = toSeconds(data.timestamp);
+        if (typeof secVal === "number" && secVal > latestSeconds) {
+          latestSeconds = secVal;
+          latestData = data;
         }
       });
 
       setCodeCounts(codeMap);
       setScamCounts(typeMap);
-      setTotal(snapshot.size);
+      setTotal(snap.size);
 
-      if (latestDoc) {
-        const data = latestDoc.data();
-        const rawCode: string = String(data.cvti ?? data.mbti ?? "");
-        const derived =
-          (data.scamType &&
-          ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)
-            ? (data.scamType as ScamTypeKey)
+      if (latestData !== null) {
+        const ld = latestData as ResultDoc; // ✅ 여기서 타입을 확정
+        const rawCode: string = String(ld.cvti ?? ld.mbti ?? "");
+        const derived: ScamTypeKey | "알 수 없음" =
+          (ld.scamType && ALL_TYPES.includes(String(ld.scamType) as ScamTypeKey)
+            ? (ld.scamType as ScamTypeKey)
             : getScamTypeFromCVTI(rawCode)) || "알 수 없음";
-        const seconds =
-          typeof data.timestamp?.seconds === "number"
-            ? data.timestamp.seconds
-            : Math.floor(
-                (data.timestamp?.toDate?.() ?? new Date()).getTime() / 1000
-              );
-        const formatted = new Date(seconds * 1000).toLocaleString("ko-KR");
+
+        const sec = toSeconds(ld.timestamp) ?? Math.floor(Date.now() / 1000);
+        const formatted = new Date(sec * 1000).toLocaleString("ko-KR");
 
         setLatest({ code: rawCode, scamType: derived, timestamp: formatted });
+      } else {
+        setLatest(null);
       }
     };
 
@@ -174,7 +185,7 @@ const Stats: React.FC = () => {
       {
         label: "응답 수",
         data: codeValues,
-        backgroundColor: "#4ade80", // green-400
+        backgroundColor: "#4ade80",
         borderRadius: 8,
       },
     ],
@@ -195,9 +206,10 @@ const Stats: React.FC = () => {
     ],
   };
 
-  const chartOptions = (title: string) => ({
+  // Chart.js v4 타입 호환 옵션
+  const chartOptions = (title: string): ChartOptions<"bar"> => ({
     responsive: true,
-    maintainAspectRatio: false as const,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       title: {
@@ -212,16 +224,25 @@ const Stats: React.FC = () => {
       },
     },
     scales: {
+      x: { type: "category" },
       y: {
-        ticks: { precision: 0, callback: (v: number) => `${v}명` },
+        type: "linear",
+        beginAtZero: true,
+        ticks: {
+          callback: ((v: unknown) => `${v}명`) as any,
+          precision: 0,
+        },
       },
     },
   });
 
+  // public/assets 경로 사용
+  const bgUrl = `${process.env.PUBLIC_URL}/assets/test-background.png`;
+
   return (
     <div
       style={{
-        backgroundImage: `url("/assets/test-background.png")`, // ✅ 오타 수정 (urlurl → url)
+        backgroundImage: `url(${bgUrl})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

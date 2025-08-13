@@ -14,7 +14,7 @@ type ChoiceLike = {
 };
 
 // 홈과 동일 이미지 경로 사용
-const QUESTION_BG = "/assets/test-background.png";
+const QUESTION_BG = "../assets/test-background.png";
 
 const clean = (s?: string) => (s ?? "").replace(/^🤔\s*/, "");
 

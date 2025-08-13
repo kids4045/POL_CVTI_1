@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const BG_SRC = "/assets/test-background.png"; // 현재 보유한 단일 배경 파일
+const BG_SRC = "../assets/test-background.png"; // 현재 보유한 단일 배경 파일
 
 export default function StartPage() {
   const navigate = useNavigate();
