@@ -14,6 +14,9 @@ import { scamTypeIcons } from "../data/scamTypeIcons";
 import { getScamTypeFromCVTI, ScamTypeKey } from "../data/cvtiToScamType";
 import { scamTypeProfiles } from "../data/scamTypeProfiles";
 
+const CANONICAL_ORIGIN =
+  process.env.REACT_APP_CANONICAL_ORIGIN || window.location.origin;
+
 const backgroundColors: Record<ScamTypeKey, string> = {
   감정공감형: "#fce4ec",
   절차맹신형: "#e0f7fa",
@@ -55,7 +58,7 @@ const Share: React.FC = () => {
   }, [params, profile]);
 
   const shareUrl = useMemo(() => {
-    const url = new URL(window.location.origin + "/share");
+    const url = new URL(CANONICAL_ORIGIN + "/share");
     url.searchParams.set("cvti", cvti);
     url.searchParams.set("scamType", scamType);
     url.searchParams.set("risk", String(risk));
