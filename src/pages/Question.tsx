@@ -13,6 +13,7 @@ type ChoiceLike = {
   mbtiImpact?: CVTIImpact;
 };
 
+// ✅ public/assets 를 PUBLIC_URL로 안전하게 참조
 const QUESTION_BG = `${process.env.PUBLIC_URL}/assets/test-background.png`;
 const clean = (s?: string) => (s ?? "").replace(/^🤔\s*/, "");
 
@@ -77,7 +78,8 @@ const Question: React.FC = () => {
           position: "fixed",
           inset: 0,
           zIndex: 0,
-          backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url("${QUESTION_BG}")`,
+          // ✅ 따옴표 제거하여 안전하게 주입
+          backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(${QUESTION_BG})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -92,7 +94,7 @@ const Question: React.FC = () => {
         aria-valuemax={100}
         style={{
           position: "fixed",
-          top: "max(0px, env(safe-area-inset-top))", // ✅ safe-area 대응
+          top: "max(0px, env(safe-area-inset-top))",
           left: 0,
           right: 0,
           height: 8,
@@ -169,10 +171,10 @@ const Question: React.FC = () => {
                   color: "#fff",
                   textShadow: "0 2px 6px rgba(0,0,0,0.4)",
                   whiteSpace: "pre-line",
-                  textAlign: "center", // ✅ 중앙 정렬
-                  maxWidth: "40rem", // ✅ 최대 폭 가드 (~640px)
-                  margin: "0 auto", // ✅ 중앙 배치
-                  padding: "0 1rem", // ✅ 좌우 여백(작은 화면 대비)
+                  textAlign: "center",
+                  maxWidth: "40rem",
+                  margin: "0 auto",
+                  padding: "0 1rem",
                 }}
               >
                 {clean(q?.situation ?? q?.text ?? q?.question)}
@@ -187,7 +189,7 @@ const Question: React.FC = () => {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center", // 중앙 배치
+                alignItems: "center",
                 gap: 12,
                 width: "100%",
               }}
@@ -225,7 +227,7 @@ const Question: React.FC = () => {
                         "transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease",
                       transform: selected ? "translateY(-1px)" : "none",
                       whiteSpace: "pre-line",
-                      width: "auto", // ✅ 텍스트 길이에 맞춤
+                      width: "auto",
                       maxWidth: "90%",
                     }}
                   >

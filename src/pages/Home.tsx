@@ -4,8 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const BG_SRC = `${process.env.PUBLIC_URL}/assets/test-background.png`;
- // 현재 보유한 단일 배경 파일
+const BG_SRC = `${process.env.PUBLIC_URL}/assets/test-background.png`; // ✅ public 자산 참조
 
 export default function StartPage() {
   const navigate = useNavigate();
@@ -34,14 +33,11 @@ export default function StartPage() {
     link.rel = "preload";
     link.as = "image";
     link.href = BG_SRC;
-    link.setAttribute("fetchpriority", "high"); // 타입 안전
+    link.setAttribute("fetchpriority", "high");
 
     document.head.appendChild(link);
-
     return () => {
-      if (link.parentNode) {
-        link.parentNode.removeChild(link); // ✅ 아무 값도 반환하지 않음
-      }
+      if (link.parentNode) link.parentNode.removeChild(link);
     };
   }, []);
 
@@ -56,10 +52,10 @@ export default function StartPage() {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#0b0b0b", // 초기 톤 맞춤
+        backgroundColor: "#0b0b0b",
       }}
     >
-      {/* 배경 레이어: PNG 하나로 onLoad 이후 페이드 인 */}
+      {/* 배경 레이어 */}
       <img
         src={BG_SRC}
         alt=""
@@ -68,10 +64,7 @@ export default function StartPage() {
         decoding="async"
         // @ts-ignore
         fetchpriority="high"
-        onLoad={() => {
-          // 첫 페인트 시 블러+투명 → 로드 완료 후 부드럽게 표시
-          requestAnimationFrame(() => setBgLoaded(true));
-        }}
+        onLoad={() => requestAnimationFrame(() => setBgLoaded(true))}
         style={{
           position: "absolute",
           inset: 0,
@@ -79,7 +72,6 @@ export default function StartPage() {
           height: "100%",
           objectFit: "cover",
           objectPosition: "center",
-          // 로드 전: 살짝 블러/어두운 오버레이 느낌, 로드 후: 선명하게
           opacity: bgLoaded ? 1 : 0,
           filter: bgLoaded ? "none" : "blur(8px)",
           transition: "opacity 500ms ease, filter 300ms ease",
@@ -88,7 +80,7 @@ export default function StartPage() {
         }}
       />
 
-      {/* 가독성 향상을 위한 어두운 오버레이 */}
+      {/* 가독성 오버레이 */}
       <div
         aria-hidden
         style={{
@@ -100,7 +92,7 @@ export default function StartPage() {
         }}
       />
 
-      {/* 상단 고정 헤더(혜택 칩 + 미니 가이드 + 참여 문구) */}
+      {/* 상단 고정 헤더 */}
       <div
         style={{
           position: "absolute",
@@ -151,7 +143,6 @@ export default function StartPage() {
             textShadow: "0 1px 2px rgba(0,0,0,.35)",
             textAlign: "center",
             whiteSpace: "pre-line",
-            // ✅ 추가: 가독성 향상
             lineHeight: 1.6,
             maxWidth: "28rem",
             margin: "0 auto",
@@ -163,7 +154,7 @@ export default function StartPage() {
           }
         </div>
 
-        {/* 참여 안내: 중앙 정렬 + 랜덤 문구 */}
+        {/* 참여 안내 */}
         <div
           style={{
             color: "#fff",
@@ -201,7 +192,7 @@ export default function StartPage() {
 
         {/* 로고 */}
         <img
-          src="/assets/thumbnail.png"
+          src={`${process.env.PUBLIC_URL}/assets/thumbnail.png`} // ✅ 통일
           alt="경남경찰청 로고"
           loading="lazy"
           style={{
@@ -212,7 +203,7 @@ export default function StartPage() {
           }}
         />
 
-        {/* 👇 제목 아래 콜아웃 + CTA */}
+        {/* 콜아웃 + CTA */}
         <motion.section
           className="home-callout"
           initial={{ opacity: 0, y: 8 }}
@@ -257,7 +248,7 @@ export default function StartPage() {
         }}
       >
         <img
-          src="/assets/police-logo.png"
+          src={`${process.env.PUBLIC_URL}/assets/police-logo.png`} // ✅ 통일
           alt="경남경찰청 로고"
           loading="lazy"
           style={{ height: "24px", marginBottom: "4px" }}

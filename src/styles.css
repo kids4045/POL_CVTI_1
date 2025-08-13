@@ -118,7 +118,6 @@ body {
 /* ✅ PNG 폴백: 프로젝트에 webp/avif가 없으므로 PNG만 사용 */
 .hero {
   background: #0b0b0b;
-  background-image: url("/assets/test-background.png");
   background-size: cover;
   background-position: center;
 }
