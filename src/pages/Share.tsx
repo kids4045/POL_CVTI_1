@@ -54,15 +54,6 @@ const Share: React.FC = () => {
     return url.toString();
   }, [cvti, scamType, risk]);
 
-  const applyUrl = useMemo(() => {
-    const url = new URL(window.location.origin + "/apply");
-    url.searchParams.set("cvti", cvti);
-    url.searchParams.set("scamType", scamType);
-    url.searchParams.set("risk", String(risk));
-    url.searchParams.set("ts", String(Date.now()));
-    return url.toString();
-  }, [cvti, scamType, risk]);
-
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
@@ -73,18 +64,22 @@ const Share: React.FC = () => {
     if (!cardRef.current) return;
     setSaving(true);
 
-    // 1) 실제 카드 루트
+    // 1) 캡처 대상(흰 카드 래퍼 - data-card-root)
     const src =
       (cardRef.current.querySelector("[data-card-root]") as HTMLElement) ||
       (cardRef.current as HTMLElement);
 
-    // 2) 화면 밖에 복제본을 만들어 캡처(뷰포트/transform/스크롤 영향 제거)
+    // 2) 뷰포트/스크롤 영향 제거용 오프스크린 복제
     const clone = src.cloneNode(true) as HTMLElement;
-    // 폭/높이 고정(원본 사이즈 유지)
     const rect = src.getBoundingClientRect();
-    clone.style.width = `${Math.ceil(rect.width)}px`;
-    clone.style.height = `${Math.ceil(rect.height)}px`;
+    const w = Math.ceil(rect.width);
+    const h = Math.ceil(rect.height);
+
+    clone.style.width = `${w}px`;
+    clone.style.height = `${h}px`;
+    clone.style.boxSizing = "border-box";
     clone.style.transform = "none";
+    clone.style.margin = "0";
 
     const sandbox = document.createElement("div");
     sandbox.style.position = "fixed";
@@ -95,24 +90,25 @@ const Share: React.FC = () => {
     sandbox.appendChild(clone);
     document.body.appendChild(sandbox);
 
-    // 폰트 로드 대기(가능한 브라우저)
+    // 폰트 로드 대기
     try {
       // @ts-ignore
       await document.fonts?.ready;
     } catch {}
 
-    // 한 프레임 쉬고 렌더 안정화
+    // 렌더 안정화
     await new Promise((r) =>
       requestAnimationFrame(() => requestAnimationFrame(r))
     );
 
     try {
-      // 3) html-to-image 시도
       let dataUrl: string | null = null;
+
+      // 3) html-to-image 우선
       try {
         const hti = await import("html-to-image");
         dataUrl = await hti.toPng(clone, {
-          pixelRatio: 2,
+          pixelRatio: Math.min(2, window.devicePixelRatio || 1),
           cacheBust: true,
           backgroundColor: "#ffffff",
           style: { transform: "none" },
@@ -124,18 +120,17 @@ const Share: React.FC = () => {
           useCORS: true,
           allowTaint: false,
           foreignObjectRendering: false,
-          scale: 2,
+          scale: Math.min(2, window.devicePixelRatio || 1),
           scrollX: 0,
           scrollY: 0,
-          width: clone.offsetWidth,
-          height: clone.offsetHeight,
-          windowWidth: clone.offsetWidth,
-          windowHeight: clone.offsetHeight,
+          width: w,
+          height: h,
+          windowWidth: w,
+          windowHeight: h,
         });
         dataUrl = canvas.toDataURL("image/png");
       }
 
-      // 저장
       const a = document.createElement("a");
       a.href = dataUrl!;
       a.download = `CVTI_${cvti}_${scamType}.png`;
@@ -163,7 +158,7 @@ const Share: React.FC = () => {
   }, [shareUrl]);
 
   const handleRetry = useCallback(() => {
-    navigate("/"); // ✅ 홈 화면으로 이동
+    navigate("/"); // 홈으로 이동
   }, [navigate]);
 
   const reportUrl = "https://ecrm.police.go.kr/minwon/main";
@@ -189,7 +184,8 @@ const Share: React.FC = () => {
         alignItems: "center",
         gap: 14,
         boxSizing: "border-box",
-        textAlign: "center", // ✅ 공유 섹션 텍스트도 중앙 정렬
+        textAlign: "center",
+        overflowX: "hidden", // ✅ 가로 넘침 방지
       }}
     >
       {/* 캡처 카드 프리뷰 */}
@@ -204,8 +200,13 @@ const Share: React.FC = () => {
           justifyContent: "center",
         }}
       >
+        {/* ✅ 캡처 대상(흰 카드) 래퍼: data-card-root 부여 & 폭 고정 */}
         <div
+          data-card-root
           style={{
+            width: "min(92vw, 480px)",
+            maxWidth: "100%",
+            boxSizing: "border-box",
             display: "inline-block",
             margin: "0 auto",
             borderRadius: 20,
@@ -213,7 +214,6 @@ const Share: React.FC = () => {
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
             padding: "18px 18px 20px",
             textAlign: "center",
-            // 저장 시 폰트/렌더링 안정
             WebkitFontSmoothing: "antialiased",
             MozOsxFontSmoothing: "grayscale",
           }}
@@ -228,20 +228,27 @@ const Share: React.FC = () => {
               background: "#f1f5f9",
               fontSize: 12,
               marginBottom: 8,
+              whiteSpace: "nowrap",
             }}
           >
             <span>CVTI</span>
             <strong>{cvti}</strong>
           </div>
 
-          <h2 style={{ fontSize: 22, marginBottom: 8 }}>
+          <h2
+            style={{
+              fontSize: 22,
+              marginBottom: 8,
+              wordBreak: "keep-all",
+            }}
+          >
             사기 성향 유형: <strong>{scamType}</strong>{" "}
             <span style={{ fontSize: 22 }}>
               {scamTypeIcons[scamType as keyof typeof scamTypeIcons]}
             </span>
           </h2>
 
-          {/* ✅ ThumbnailCaptureCard 루트에 data-card-root 속성 있어야 함 */}
+          {/* 썸네일 카드 본문 */}
           <ThumbnailCaptureCard
             mbti={cvti}
             scamType={scamType}
@@ -249,8 +256,8 @@ const Share: React.FC = () => {
             risk={risk}
           />
 
-          {/* 위험도 바 (표기 줄바꿈 방지) */}
-          <div style={{ margin: "12px auto 0", maxWidth: 420 }}>
+          {/* 위험도 바 */}
+          <div style={{ margin: "12px auto 0", width: "100%" }}>
             <div
               style={{
                 display: "flex",
@@ -283,7 +290,7 @@ const Share: React.FC = () => {
             </div>
           </div>
 
-          {/* 하단 마크(로고는 캡처 제외 가능) */}
+          {/* 하단 마크 */}
           <div
             style={{
               display: "inline-flex",
@@ -335,36 +342,30 @@ const Share: React.FC = () => {
           📸 썸네일 이미지 저장
         </button>
 
-        <a
-          href={applyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ width: "100%" }}
+        {/* 외부 링크만 열도록 단순화 */}
+        <button
+          className="neon-yellow is-pulsing"
+          style={{
+            backgroundColor: "#facc15",
+            padding: "12px 16px",
+            border: "none",
+            borderRadius: 10,
+            fontSize: "clamp(13px, 3.5vw, 16px)",
+            cursor: "pointer",
+            width: "100%",
+            fontWeight: "bold",
+          }}
+          type="button"
+          onClick={() =>
+            window.open(
+              "https://naver.me/F4LrWZ3U",
+              "_blank",
+              "noopener,noreferrer"
+            )
+          }
         >
-          <button
-            className="neon-yellow is-pulsing"
-            style={{
-              backgroundColor: "#facc15", // 기존 색 유지
-              padding: "12px 16px",
-              border: "none",
-              borderRadius: 10,
-              fontSize: "clamp(13px, 3.5vw, 16px)",
-              cursor: "pointer",
-              width: "100%",
-              fontWeight: "bold",
-            }}
-            type="button"
-            onClick={() =>
-              window.open(
-                "https://naver.me/F4LrWZ3U",
-                "_blank",
-                "noopener,noreferrer"
-              )
-            }
-          >
-            📩 추첨 이벤트 응모하기
-          </button>
-        </a>
+          📩 추첨 이벤트 응모하기
+        </button>
 
         <button
           onClick={handleRetry}

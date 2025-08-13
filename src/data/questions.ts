@@ -25,7 +25,7 @@ export const questions = [
     id: 1,
     iconType: "warning",
     situation:
-      "📩 검찰에서 온 것처럼 보이는 문자: \n'불법 거래 연루 혐의로 출석 요구합니다'라는 문자를 받았습니다.",
+      "📩 검찰에서 온 것처럼 보이는 문자: \n'불법 거래 연루 혐의로 출석 요구합니다'\n라는 문자를 받았습니다.",
     // ✅ 1번은 '무시' 항목이 이미 포함되어 있으므로 4지 유지
     choices: [
       { text: "무서워서 바로 전화를 건다.", mbtiImpact: { P: 1 } },
@@ -41,7 +41,7 @@ export const questions = [
     id: 2,
     iconType: "chat",
     situation:
-      "📦 '배송 오류가 있어 확인이 필요합니다'라는 \n문구와 함께 택배 링크가 도착했습니다.",
+      "📦 '배송 오류가 있어 확인이 필요합니다'\n라는 문구와 함께 택배 링크가 \n도착했습니다.",
     choices: [
       { text: "내 택배일 수도 있으니 눌러본다.", mbtiImpact: { P2: 1 } },
       { text: "링크 대신 택배사 앱에서 조회한다.", mbtiImpact: { J: 1 } },
@@ -54,7 +54,7 @@ export const questions = [
     id: 3,
     iconType: "chat",
     situation:
-      "🎁 '이벤트에 당첨되셨습니다! 수수료 입금 시 경품 지급'\n이라는 DM을 받았습니다.",
+      "🎁 '이벤트에 당첨되셨습니다! \n수수료 입금 시 경품 지급'\n이라는 DM을 받았습니다.",
     choices: [
       { text: "진짜인가 싶어 수수료를 입금한다.", mbtiImpact: { P: 1 } },
       { text: "이벤트 계정과 내용을 검색한다.", mbtiImpact: { G: 1 } },
@@ -67,7 +67,7 @@ export const questions = [
     id: 4,
     iconType: "chat",
     situation:
-      "📱 지인을 사칭한 메시지가 \n'급하게 도와줘'라며 계좌 이체를 요청합니다.",
+      "📱 지인을 사칭한 메시지가 \n'급하게 도와줘'라며 \n계좌 이체를 요청합니다.",
     choices: [
       { text: "지인이니까 우선 도와준다.", mbtiImpact: { P: 1 } },
       { text: "직접 전화해 진짜인지 확인한다.", mbtiImpact: { G: 1 } },
@@ -80,7 +80,7 @@ export const questions = [
     id: 5,
     iconType: "bank",
     situation:
-      "🏦 은행을 사칭한 문자로 \n'본인 인증을 위해 OTP 번호가 필요하다'는 요청을 받았습니다.",
+      "🏦 은행을 사칭한 문자로 \n'본인 인증을 위해 OTP 번호가 필요하다'\n는 요청을 받았습니다.",
     choices: [
       { text: "은행 요청이니 믿고 번호를 준다.", mbtiImpact: { P: 1 } },
       { text: "이런 요청은 있을 수 없다고 생각한다.", mbtiImpact: { G: 1 } },
@@ -108,7 +108,7 @@ export const questions = [
   {
     id: 7,
     iconType: "phone",
-    situation: "📞 가족을 사칭해 급히 송금을 요청하는 전화를 받았습니다.",
+    situation: "📞 가족을 사칭해 급히 송금을 \n요청하는 전화를 받았습니다.",
     choices: [
       { text: "상황이 급해 보여서 일단 송금한다.", mbtiImpact: { P: 1 } },
       { text: "다른 가족에게 먼저 연락해본다.", mbtiImpact: { G: 1 } },
@@ -120,7 +120,7 @@ export const questions = [
   {
     id: 8,
     iconType: "bank",
-    situation: "💸 중고거래 플랫폼에서 선입금을 요구받았습니다.",
+    situation: "💸 중고거래 플랫폼에서 \n선입금을 요구받았습니다.",
     choices: [
       { text: "빠르게 거래하고 싶어 입금한다.", mbtiImpact: { P2: 1 } },
       { text: "직거래만 하겠다고 한다.", mbtiImpact: { G: 1 } },
@@ -132,7 +132,7 @@ export const questions = [
   {
     id: 9,
     iconType: "warning",
-    situation: "🔗 학교 단톡방에 출처 불명의 링크가 공유됐습니다.",
+    situation: "🔗 학교 단톡방에 출처 불명의 \n링크가 공유됐습니다.",
     choices: [
       { text: "재밌어 보여서 눌러본다.", mbtiImpact: { T: 1 } },
       { text: "친구에게 먼저 이 링크 아냐고 물어본다.", mbtiImpact: { Q: 1 } },
@@ -144,7 +144,7 @@ export const questions = [
   {
     id: 10,
     iconType: "chat",
-    situation: "🏠 '고수익 재택근무'를 제안하는 메시지를 받았습니다.",
+    situation: "🏠 '고수익 재택근무'를 제안하는 \n메시지를 받았습니다.",
     choices: [
       { text: "일단 설명 들으러 가본다.", mbtiImpact: { T: 1 } },
       { text: "너무 좋아 보이면 일단 의심한다.", mbtiImpact: { N: 1 } },
@@ -156,7 +156,7 @@ export const questions = [
   {
     id: 11,
     iconType: "chat",
-    situation: "📲 '무료 체험' 문구가 담긴 광고 문자가 도착했습니다.",
+    situation: "📲 '무료 체험' 문구가 담긴 \n광고 문자가 도착했습니다.",
     choices: [
       { text: "무료니까 해볼까 싶다.", mbtiImpact: { P2: 1 } },
       { text: "광고 차단 기능을 설정한다.", mbtiImpact: { J: 1 } },
@@ -168,7 +168,7 @@ export const questions = [
   {
     id: 12,
     iconType: "chat",
-    situation: "📉 비트코인 투자로 고수익을 보장한다는 \n메시지를 받았습니다.",
+    situation: "📉 비트코인 투자로 고수익을 \n보장한다는 메시지를 받았습니다.",
     choices: [
       { text: "수익률이 높아 솔깃하다.", mbtiImpact: { P2: 1 } },
       { text: "‘보장’이라는 말에 불신부터 든다.", mbtiImpact: { J: 1 } },
@@ -181,7 +181,7 @@ export const questions = [
     id: 13,
     iconType: "warning",
     situation:
-      "📱 새벽, 친구가 '인증번호 좀 보내줘'라고 보냈고\n곧바로 '본인확인 링크' 문자가 도착했습니다.",
+      "📱 새벽, 친구가 '인증번호 좀 보내줘'라고 보냈고\n곧바로 '본인확인 링크' \n문자가 도착했습니다.",
     choices: [
       { text: "일단 링크를 열어본다.", mbtiImpact: { P: 1 } },
       { text: "친구에게 전화해 본인 확인부터 한다.", mbtiImpact: { G: 1 } },
@@ -196,7 +196,7 @@ export const questions = [
   {
     id: 14,
     iconType: "chat",
-    situation: "🎮 채팅방에서 불법 도박 링크가 게임처럼 공유되고 있습니다.",
+    situation: "🎮 채팅방에서 불법 도박 링크가 \n게임처럼 공유되고 있습니다.",
     choices: [
       { text: "심심하니 한 번 눌러본다.", mbtiImpact: { P2: 1 } },
       { text: "광고처럼 보여서 무시한다.", mbtiImpact: { J: 1 } },
@@ -208,7 +208,7 @@ export const questions = [
   {
     id: 15,
     iconType: "warning",
-    situation: "🎫 이벤트 당첨이라며 이름, 전화번호를 요구받았습니다.",
+    situation: "🎫 이벤트 당첨이라며 \n이름, 전화번호를 \n요구받았습니다.",
     choices: [
       { text: "이름 정도는 괜찮겠지 하고 입력한다.", mbtiImpact: { P: 1 } },
       { text: "계정이 공식인지부터 확인한다.", mbtiImpact: { G: 1 } },
@@ -220,7 +220,7 @@ export const questions = [
   {
     id: 16,
     iconType: "chat",
-    situation: "📥 SNS DM으로 고수익 부업 제안이 도착했습니다.",
+    situation: "📥 SNS DM으로 고수익을 강조한 \n부업 제안이 도착했습니다.",
     choices: [
       { text: "시간 남는데 일단 해볼까?", mbtiImpact: { P2: 1 } },
       { text: "그럴듯하면 일단 의심부터 든다.", mbtiImpact: { J: 1 } },

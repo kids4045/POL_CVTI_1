@@ -31,6 +31,12 @@ const Question: React.FC = () => {
     () => ((current + 1) / total) * 100,
     [current, total]
   );
+
+  const PAD_X_ORG = 24; // 기존 좌우 패딩(px) 값에 맞게 조정
+  const PAD_Y = 16; // 상하 패딩 유지값
+  const REDUCE_FACTOR = 0.25; // 75% 감소 → 25%만 남김
+  const PAD_X_NEW = Math.round(PAD_X_ORG * REDUCE_FACTOR);
+
   const qno = useMemo(() => String(current + 1).padStart(2, "0"), [current]);
 
   const handleChoice = (choice: ChoiceLike, idx: number) => {
@@ -134,7 +140,7 @@ const Question: React.FC = () => {
               transition={{ duration: 0.3 }}
               style={{
                 position: "relative",
-                padding: "24px clamp(16px,3.6vw,32px)",
+                padding: "24px clamp(4px, 0.9vw, 8px)",
                 borderRadius: 20,
                 background:
                   "linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.10))",
@@ -174,7 +180,7 @@ const Question: React.FC = () => {
                   textAlign: "center",
                   maxWidth: "40rem",
                   margin: "0 auto",
-                  padding: "0 1rem",
+                  padding: "0 0.25rem",
                 }}
               >
                 {clean(q?.situation ?? q?.text ?? q?.question)}
