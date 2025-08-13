@@ -45,6 +45,16 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
   const background = backgroundColors[scamType];
   const icon = scamTypeIcons[scamType];
 
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(max-width: 420px)").matches;
+
+  // 데스크톱/모바일 값 스위치 헬퍼
+  const fs = (desktop: number, mobile: number) => (isMobile ? mobile : desktop);
+  const pad = (desktop: string, mobile: string) =>
+    isMobile ? mobile : desktop;
+
   return (
     <div
       data-capture-card
@@ -54,7 +64,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
         maxWidth: "100%",
         backgroundColor: background,
         borderRadius: 24,
-        padding: "24px 22px 26px",
+        padding: pad("24px 22px 26px", "20px 16px 22px"),
         boxSizing: "border-box",
         fontFamily:
           "'Pretendard Variable','Pretendard','Noto Sans KR',system-ui,sans-serif",
@@ -69,18 +79,18 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
         style={{
           background: "rgba(255,255,255,0.7)",
           borderRadius: 20,
-          padding: "18px 16px",
-          marginBottom: 14,
+          padding: pad("18px 16px", "14px 12px"),
+          marginBottom: fs(14, 10),
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
         }}
       >
-        <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 4 }}>
+        <div style={{ fontSize: fs(28, 22), fontWeight: 900, marginBottom: 4 }}>
           사기 성향 유형: <span>{scamType}</span> <span>{icon}</span>
         </div>
 
         <div
           style={{
-            fontSize: 20,
+            fontSize: fs(20, 17),
             fontWeight: 900,
             marginBottom: 8,
           }}
@@ -90,7 +100,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
 
         <div
           style={{
-            fontSize: 15,
+            fontSize: fs(15, 14),
             color: "#6b7280",
             whiteSpace: "pre-line",
             lineHeight: 1.6,
@@ -102,11 +112,11 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
 
       {/* 중앙 타입/슬로건 */}
       <div style={{ margin: "12px 0 18px" }}>
-        <div style={{ fontSize: 40 }}>🧠 {mbti}</div>
+        <div style={{ fontSize: fs(40, 32) }}>🧠 {mbti}</div>
         <div
           style={{
             marginTop: 10,
-            fontSize: 22,
+            fontSize: fs(22, 18),
             fontWeight: 900,
             whiteSpace: "nowrap",
             wordBreak: "keep-all",
@@ -117,7 +127,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
         <div
           style={{
             marginTop: 12,
-            fontSize: 18,
+            fontSize: fs(18, 16),
             color: "#4b5563",
             fontStyle: "italic",
             whiteSpace: "pre-line",
@@ -143,7 +153,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
             display: "flex",
             alignItems: "baseline",
             gap: 6,
-            fontSize: 20,
+            fontSize: fs(20, 18),
             marginBottom: 12,
             whiteSpace: "nowrap",
             wordBreak: "keep-all",
@@ -159,14 +169,14 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
 
         {/* QR */}
         <div style={{ display: "block" }}>
-          <QRCode value={shareUrl} size={126} />
-          <div style={{ fontSize: 14, color: "#555", marginTop: 10 }}>
+          <QRCode value={shareUrl} size={fs(126, 112)} />
+          <div style={{ fontSize: fs(14, 13), color: "#555", marginTop: 10 }}>
             결과 공유용 QR
           </div>
           <div
             style={{
               marginTop: 10,
-              fontSize: 14,
+              fontSize: fs(14, 13),
               color: "#475569",
               // 한 줄 유지 + 말줄임 → 가로 넘침 방지
               whiteSpace: "nowrap",

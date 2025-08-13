@@ -32,6 +32,11 @@ const clampSafe = (n: unknown, fallback = 60) => {
   return Math.min(100, Math.max(0, num));
 };
 
+const isMobile =
+  typeof window !== "undefined" &&
+  window.matchMedia &&
+  window.matchMedia("(max-width: 420px)").matches;
+
 const Share: React.FC = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -255,10 +260,10 @@ const Share: React.FC = () => {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "6px 10px",
+                padding: isMobile ? "5px 9px" : "6px 10px",
                 borderRadius: 999,
                 background: "#f1f5f9",
-                fontSize: 12,
+                fontSize: isMobile ? 11 : 12,
                 marginBottom: 8,
                 whiteSpace: "nowrap",
               }}
@@ -269,13 +274,13 @@ const Share: React.FC = () => {
 
             <h2
               style={{
-                fontSize: 22,
+                fontSize: isMobile ? 18 : 22, // ← 모바일에서 축소
                 marginBottom: 8,
                 wordBreak: "keep-all",
               }}
             >
               사기 성향 유형: <strong>{scamType}</strong>{" "}
-              <span style={{ fontSize: 22 }}>
+              <span style={{ fontSize: isMobile ? 18 : 22 }}>
                 {scamTypeIcons[scamType as keyof typeof scamTypeIcons]}
               </span>
             </h2>
