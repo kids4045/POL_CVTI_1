@@ -3,10 +3,13 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 // Firestore
-import { db } from "../firebase/firestore";
+import { db } from "../firebase";
 import {
   collection,
   getDocs,
+  query,
+  orderBy,
+  limit,
   DocumentData,
   Timestamp,
 } from "firebase/firestore";
