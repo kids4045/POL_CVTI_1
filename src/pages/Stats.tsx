@@ -10,7 +10,6 @@ import {
   query,
   orderBy,
   limit,
-  DocumentData,
   Timestamp,
 } from "firebase/firestore";
 
@@ -126,49 +125,48 @@ const Stats: React.FC = () => {
       setErr(null);
 
       try {
-        // 최신순(내림차순)으로 최대 2000건
-        // ⚠️ createdAt 없는 옛 문서는 이 쿼리에 포함되지 않을 수 있습니다.
+        // 최신순(내림차순) 2000건
         const ref = collection(db, "results");
         const q = query(ref, orderBy("createdAt", "desc"), limit(2000));
         const snap = await getDocs(q);
 
+        // ✅ 스냅샷 → 명시적으로 ResultDoc[]로 변환
+        const list: ResultDoc[] = snap.docs.map((d) => d.data() as ResultDoc);
+
+        // 누적용 맵 초기화
         const codeMap: Record<string, number> = {};
         const typeMap: Record<ScamTypeKey, number> = Object.fromEntries(
           ALL_TYPES.map((t) => [t, 0])
         ) as Record<ScamTypeKey, number>;
 
-        let firstDocData: ResultDoc | null = null;
-
-        snap.forEach((d, idx) => {
-          const data = d.data() as DocumentData as ResultDoc;
-
-          // 최신 문서(정렬상 0번째)를 별도로 확보
-          if (idx === 0) firstDocData = data;
-
-          // 코드 누적
+        // 집계
+        for (const data of list) {
           const cvtiRaw: string = String(data.cvti ?? data.mbti ?? "");
-          if (cvtiRaw) {
-            codeMap[cvtiRaw] = (codeMap[cvtiRaw] || 0) + 1;
+          if (!cvtiRaw) continue;
 
-            // 유형 결정(저장값 우선, 없으면 계산)
-            let t: ScamTypeKey | null = null;
-            if (
-              data.scamType &&
-              ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)
-            ) {
-              t = data.scamType as ScamTypeKey;
-            } else {
-              const calc = getScamTypeFromCVTI(cvtiRaw);
-              if (calc && ALL_TYPES.includes(calc)) t = calc;
-            }
-            if (t) typeMap[t] = (typeMap[t] || 0) + 1;
+          // 코드 카운트
+          codeMap[cvtiRaw] = (codeMap[cvtiRaw] || 0) + 1;
+
+          // 유형 결정(저장값 우선, 없으면 CVTI→유형 변환)
+          let t: ScamTypeKey | null = null;
+          if (
+            data.scamType &&
+            ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)
+          ) {
+            t = data.scamType as ScamTypeKey;
+          } else {
+            const calc = getScamTypeFromCVTI(cvtiRaw);
+            if (calc && ALL_TYPES.includes(calc)) t = calc;
           }
-        });
+          if (t) typeMap[t] = (typeMap[t] || 0) + 1;
+        }
 
         setCodeCounts(codeMap);
         setScamCounts(typeMap);
-        setTotal(snap.size);
+        setTotal(list.length);
 
+        // 최신 1건 표시
+        const firstDocData: ResultDoc | null = list.length > 0 ? list[0] : null;
         if (firstDocData) {
           const rawCode: string = String(
             firstDocData.cvti ?? firstDocData.mbti ?? ""
