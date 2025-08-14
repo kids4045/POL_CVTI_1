@@ -1,8 +1,8 @@
 // src/pages/Stats.tsx
 import React, { useEffect, useMemo, useState } from "react";
 
-// Firestore
-import { db } from "../firebase";
+// Firebase
+import { db, auth } from "../firebase";
 import {
   collection,
   getDocs,
@@ -10,7 +10,9 @@ import {
   orderBy,
   limit,
   Timestamp,
+  where,
 } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 
 // Chart
 import { Bar } from "react-chartjs-2";
@@ -27,12 +29,10 @@ import {
 
 // CVTI → ScamType 변환
 import { ScamTypeKey, getScamTypeFromCVTI } from "../data/cvtiToScamType";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
 
 type ResultDoc = {
   cvti?: string;
-  mbti?: string;
+  mbti?: string; // 레거시 호환
   scamType?: string;
   risk?: number;
   createdAt?: unknown; // Timestamp | Date | { seconds:number } | ...
@@ -73,7 +73,7 @@ const TYPE_COLORS: Record<ScamTypeKey, string> = {
   무관심형: "#94a3b8",
 };
 
-// Timestamp 다양한 형태 안전 변환
+// Timestamp 다양한 형태 → 초(second)로 안전 변환
 function toSeconds(ts: unknown): number | null {
   if (!ts) return null;
   if (ts instanceof Timestamp) return ts.seconds;
@@ -85,10 +85,73 @@ function toSeconds(ts: unknown): number | null {
   return null;
 }
 
+const fmtKST = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+// YYYY-MM-DD → Timestamp 범위(자정~23:59:59.999)
+function toRangeTimestamps(startStr?: string, endStr?: string) {
+  let from: Timestamp | undefined;
+  let to: Timestamp | undefined;
+  if (startStr) {
+    const [y, m, d] = startStr.split("-").map(Number);
+    from = Timestamp.fromDate(new Date(y!, m! - 1, d!, 0, 0, 0, 0));
+  }
+  if (endStr) {
+    const [y, m, d] = endStr.split("-").map(Number);
+    to = Timestamp.fromDate(new Date(y!, m! - 1, d!, 23, 59, 59, 999));
+  }
+  return { from, to };
+}
+
+// CSV 다운로드
+function downloadCSV(
+  currentRows: ResultDoc[],
+  startStr?: string,
+  endStr?: string
+) {
+  const header = ["createdAt(KST)", "cvti", "scamType", "risk"];
+  const lines = [header.join(",")];
+
+  currentRows.forEach((r) => {
+    const sec = toSeconds(r.createdAt) ?? toSeconds(r.timestamp);
+    const dt = sec ? fmtKST.format(new Date(sec * 1000)) : "";
+    const fields = [
+      dt,
+      String(r.cvti ?? r.mbti ?? ""),
+      String(r.scamType ?? ""),
+      typeof r.risk === "number" ? String(r.risk) : "",
+    ].map((v) => `"${v.replace(/"/g, '""')}"`);
+    lines.push(fields.join(","));
+  });
+
+  const blob = new Blob([lines.join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `cvti_results_${startStr || "all"}_${endStr || "all"}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 const Stats: React.FC = () => {
-  // 상태
+  // 로딩/에러 상태
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+
+  // 기간 필터 (기본: 캠페인 예정일 2025-08-20 ~ 2025-09-10)
+  const [start, setStart] = useState<string>("2025-08-20");
+  const [end, setEnd] = useState<string>("2025-09-10");
+
+  // 원본 행(현재 필터) — CSV/집계 공통 사용
+  const [rows, setRows] = useState<ResultDoc[]>([]);
 
   // 코드(CVTI/MBTI)별 카운트
   const [codeCounts, setCodeCounts] = useState<Record<string, number>>({});
@@ -106,36 +169,37 @@ const Stats: React.FC = () => {
     timestamp: string;
   } | null>(null);
 
-  // 데이터 로딩
+  // 데이터 로딩(기간 변경 시 재조회)
   useEffect(() => {
     (async () => {
       setLoading(true);
       setErr(null);
-
       try {
-        // 최신순(내림차순) 2000건
         const ref = collection(db, "results");
-        const q = query(ref, orderBy("createdAt", "desc"), limit(2000));
-        const snap = await getDocs(q);
+        const { from, to } = toRangeTimestamps(start, end);
 
-        // 결과를 명시적으로 ResultDoc[]로 변환
+        const conds: any[] = [];
+        if (from) conds.push(where("createdAt", ">=", from));
+        if (to) conds.push(where("createdAt", "<=", to));
+        // 범위조건 있으면 동일 필드 orderBy 필수
+        conds.push(orderBy("createdAt", "desc"));
+        conds.push(limit(2000));
+
+        const snap = await getDocs(query(ref, ...conds));
         const list: ResultDoc[] = snap.docs.map((d) => d.data() as ResultDoc);
+        setRows(list);
 
-        // 누적용 맵 초기화
+        // 집계
         const codeMap: Record<string, number> = {};
         const typeMap: Record<ScamTypeKey, number> = Object.fromEntries(
           ALL_TYPES.map((t) => [t, 0])
         ) as Record<ScamTypeKey, number>;
 
-        // 집계
         for (const data of list) {
-          const cvtiRaw: string = String(data.cvti ?? data.mbti ?? "");
-          if (!cvtiRaw) continue;
+          const code = String(data.cvti ?? data.mbti ?? "");
+          if (!code) continue;
+          codeMap[code] = (codeMap[code] || 0) + 1;
 
-          // 코드 카운트
-          codeMap[cvtiRaw] = (codeMap[cvtiRaw] || 0) + 1;
-
-          // 유형 결정(저장값 우선, 없으면 CVTI→유형 변환)
           let t: ScamTypeKey | null = null;
           if (
             data.scamType &&
@@ -143,7 +207,7 @@ const Stats: React.FC = () => {
           ) {
             t = data.scamType as ScamTypeKey;
           } else {
-            const calc = getScamTypeFromCVTI(cvtiRaw);
+            const calc = getScamTypeFromCVTI(code);
             if (calc && ALL_TYPES.includes(calc)) t = calc;
           }
           if (t) typeMap[t] = (typeMap[t] || 0) + 1;
@@ -154,20 +218,18 @@ const Stats: React.FC = () => {
         setTotal(list.length);
 
         // 최신 1건 표시
-        const firstDocData: ResultDoc | null = list.length > 0 ? list[0] : null;
-        if (firstDocData) {
-          const rawCode: string = String(
-            firstDocData.cvti ?? firstDocData.mbti ?? ""
-          );
+        const first = list[0];
+        if (first) {
+          const rawCode = String(first.cvti ?? first.mbti ?? "");
           const derived: ScamTypeKey | "알 수 없음" =
-            (firstDocData.scamType &&
-            ALL_TYPES.includes(String(firstDocData.scamType) as ScamTypeKey)
-              ? (firstDocData.scamType as ScamTypeKey)
+            (first.scamType &&
+            ALL_TYPES.includes(String(first.scamType) as ScamTypeKey)
+              ? (first.scamType as ScamTypeKey)
               : getScamTypeFromCVTI(rawCode)) || "알 수 없음";
 
           const sec =
-            toSeconds(firstDocData.createdAt) ??
-            toSeconds(firstDocData.timestamp) ??
+            toSeconds(first.createdAt) ??
+            toSeconds(first.timestamp) ??
             Math.floor(Date.now() / 1000);
           const formatted = new Date(sec * 1000).toLocaleString("ko-KR");
 
@@ -182,7 +244,7 @@ const Stats: React.FC = () => {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [start, end]);
 
   // 코드(CVTI/MBTI) 차트 데이터 (알파벳순)
   const codeLabels = useMemo(
@@ -220,16 +282,14 @@ const Stats: React.FC = () => {
     ],
   };
 
-  // Chart.js v4 타입 호환 옵션
+  // Chart.js v4 옵션
   const chartOptions = (title: string): ChartOptions<"bar"> => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       title: { display: true, text: title, font: { size: 20 } },
-      tooltip: {
-        callbacks: { label: (ctx: any) => ` ${ctx.raw}명` },
-      },
+      tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}명` } },
     },
     scales: {
       x: { type: "category" },
@@ -256,7 +316,7 @@ const Stats: React.FC = () => {
     >
       <div
         style={{
-          maxWidth: "800px",
+          maxWidth: "960px",
           margin: "0 auto",
           padding: "clamp(16px, 5vw, 40px)",
           fontFamily: "'Noto Sans KR', sans-serif",
@@ -265,6 +325,7 @@ const Stats: React.FC = () => {
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}
       >
+        {/* 상단 헤더(제목 + 로그아웃) */}
         <div
           style={{
             display: "flex",
@@ -292,6 +353,57 @@ const Stats: React.FC = () => {
           </button>
         </div>
 
+        {/* 기간 필터 + CSV */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <label style={{ fontSize: 13, color: "#475569" }}>시작일</label>
+            <input
+              type="date"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+            />
+            <label style={{ fontSize: 13, color: "#475569" }}>종료일</label>
+            <input
+              type="date"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => {
+                setStart("2025-08-20");
+                setEnd("2025-09-10");
+              }}
+              style={{ padding: "6px 10px" }}
+              title="캠페인 기간으로 설정"
+            >
+              캠페인(8/20~9/10)
+            </button>
+            <button
+              onClick={() => downloadCSV(rows, start, end)}
+              style={{
+                padding: "6px 10px",
+                border: "1px solid #e5e7eb",
+                background: "#fff",
+              }}
+              title="현재 범위의 원본 행을 CSV로 저장"
+            >
+              CSV 내보내기
+            </button>
+          </div>
+        </div>
+
         {loading && (
           <p style={{ textAlign: "center", fontSize: 14 }}>
             통계 데이터를 불러오는 중입니다...
@@ -306,6 +418,7 @@ const Stats: React.FC = () => {
 
         {!loading && !err && (
           <>
+            {/* 요약 */}
             <div
               style={{
                 marginBottom: "40px",
@@ -328,6 +441,7 @@ const Stats: React.FC = () => {
               )}
             </div>
 
+            {/* 차트: 코드 분포 */}
             <div
               style={{
                 width: "100%",
@@ -342,6 +456,7 @@ const Stats: React.FC = () => {
               />
             </div>
 
+            {/* 차트: 사기 성향 분포 */}
             <div
               style={{
                 width: "100%",
