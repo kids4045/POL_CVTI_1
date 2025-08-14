@@ -3,7 +3,7 @@ import React, { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { scamTypeProfiles } from "../data/scamTypeProfiles";
 import { motion } from "framer-motion";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/firestore";
 import ResultCaptureCard from "../components/ResultCaptureCard";
 import { scamTypeIcons } from "../data/scamTypeIcons";
@@ -72,7 +72,7 @@ const Result: React.FC = () => {
           cvti, // 🔄 필드명은 cvti로 통일
           scamType,
           risk, // (선택) 위험도 저장해두면 통계에 유용
-          timestamp: Timestamp.now(),
+          createdAt: serverTimestamp(),
         });
         // console.log("✅ Firestore 저장 완료");
       } catch (error) {
