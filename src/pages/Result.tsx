@@ -3,8 +3,6 @@ import React, { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { scamTypeProfiles } from "../data/scamTypeProfiles";
 import { motion } from "framer-motion";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase/firestore";
 import ResultCaptureCard from "../components/ResultCaptureCard";
 import { scamTypeIcons } from "../data/scamTypeIcons";
 import scamIcons from "../data/scamIcons";
@@ -63,24 +61,6 @@ const Result: React.FC = () => {
     const raw = String(profile?.slogan ?? "");
     return raw.replace(/^[“"']+|[”"']+$/g, "");
   }, [profile?.slogan]);
-
-  useEffect(() => {
-    if (!cvti || !scamType) return;
-    const saveResultToFirestore = async () => {
-      try {
-        await addDoc(collection(db, "results"), {
-          cvti, // 🔄 필드명은 cvti로 통일
-          scamType,
-          risk, // (선택) 위험도 저장해두면 통계에 유용
-          createdAt: serverTimestamp(),
-        });
-        // console.log("✅ Firestore 저장 완료");
-      } catch (error) {
-        console.error("❌ Firestore 저장 실패:", error);
-      }
-    };
-    saveResultToFirestore();
-  }, [cvti, scamType, risk]);
 
   if (!cvti || !scamType || !profile) {
     return (
