@@ -1,5 +1,5 @@
 // src/pages/Stats.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 // Firestore
@@ -34,7 +34,9 @@ type ResultDoc = {
   cvti?: string;
   mbti?: string;
   scamType?: string;
-  timestamp?: unknown;
+  risk?: number;
+  createdAt?: unknown; // Timestamp | Date | { seconds:number } | ...
+  timestamp?: unknown; // 레거시 호환
 };
 
 ChartJS.register(
@@ -87,6 +89,7 @@ const Stats: React.FC = () => {
   const [params] = useSearchParams();
   const key = params.get("key");
 
+  // 👉 키 체크(표시용). 보안은 라우터의 RequireAdmin이 담당합니다.
   if (key !== "4107") {
     return (
       <div style={{ padding: "40px", textAlign: "center", color: "#ff4d4f" }}>
@@ -95,6 +98,10 @@ const Stats: React.FC = () => {
       </div>
     );
   }
+
+  // 상태
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
 
   // 코드(CVTI/MBTI)별 카운트
   const [codeCounts, setCodeCounts] = useState<Record<string, number>>({});
@@ -112,76 +119,94 @@ const Stats: React.FC = () => {
     timestamp: string;
   } | null>(null);
 
+  // 데이터 로딩
   useEffect(() => {
-    const fetchData = async () => {
-      const snap = await getDocs(collection(db, "results"));
+    (async () => {
+      setLoading(true);
+      setErr(null);
 
-      const codeMap: Record<string, number> = {};
-      const typeMap: Record<ScamTypeKey, number> = Object.fromEntries(
-        ALL_TYPES.map((t) => [t, 0])
-      ) as Record<ScamTypeKey, number>;
+      try {
+        // 최신순(내림차순)으로 최대 2000건
+        // ⚠️ createdAt 없는 옛 문서는 이 쿼리에 포함되지 않을 수 있습니다.
+        const ref = collection(db, "results");
+        const q = query(ref, orderBy("createdAt", "desc"), limit(2000));
+        const snap = await getDocs(q);
 
-      // 최신 데이터(스냅샷 아님, data만 보관)
-      let latestSeconds = -1;
-      let latestData: ResultDoc | null = null;
+        const codeMap: Record<string, number> = {};
+        const typeMap: Record<ScamTypeKey, number> = Object.fromEntries(
+          ALL_TYPES.map((t) => [t, 0])
+        ) as Record<ScamTypeKey, number>;
 
-      snap.forEach((doc) => {
-        const data = doc.data() as ResultDoc;
+        let firstDocData: ResultDoc | null = null;
 
-        // 코드 누적
-        const cvtiRaw: string = String(data.cvti ?? data.mbti ?? "");
-        if (cvtiRaw) {
-          codeMap[cvtiRaw] = (codeMap[cvtiRaw] || 0) + 1;
+        snap.forEach((d, idx) => {
+          const data = d.data() as DocumentData as ResultDoc;
 
-          // 유형 결정(저장값 우선, 없으면 계산)
-          let t: ScamTypeKey | null = null;
-          if (
-            data.scamType &&
-            ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)
-          ) {
-            t = data.scamType as ScamTypeKey;
-          } else {
-            const calc = getScamTypeFromCVTI(cvtiRaw);
-            if (calc && ALL_TYPES.includes(calc)) t = calc;
+          // 최신 문서(정렬상 0번째)를 별도로 확보
+          if (idx === 0) firstDocData = data;
+
+          // 코드 누적
+          const cvtiRaw: string = String(data.cvti ?? data.mbti ?? "");
+          if (cvtiRaw) {
+            codeMap[cvtiRaw] = (codeMap[cvtiRaw] || 0) + 1;
+
+            // 유형 결정(저장값 우선, 없으면 계산)
+            let t: ScamTypeKey | null = null;
+            if (
+              data.scamType &&
+              ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)
+            ) {
+              t = data.scamType as ScamTypeKey;
+            } else {
+              const calc = getScamTypeFromCVTI(cvtiRaw);
+              if (calc && ALL_TYPES.includes(calc)) t = calc;
+            }
+            if (t) typeMap[t] = (typeMap[t] || 0) + 1;
           }
-          if (t) typeMap[t] = (typeMap[t] || 0) + 1;
+        });
+
+        setCodeCounts(codeMap);
+        setScamCounts(typeMap);
+        setTotal(snap.size);
+
+        if (firstDocData) {
+          const rawCode: string = String(
+            firstDocData.cvti ?? firstDocData.mbti ?? ""
+          );
+          const derived: ScamTypeKey | "알 수 없음" =
+            (firstDocData.scamType &&
+            ALL_TYPES.includes(String(firstDocData.scamType) as ScamTypeKey)
+              ? (firstDocData.scamType as ScamTypeKey)
+              : getScamTypeFromCVTI(rawCode)) || "알 수 없음";
+
+          const sec =
+            toSeconds(firstDocData.createdAt) ??
+            toSeconds(firstDocData.timestamp) ??
+            Math.floor(Date.now() / 1000);
+          const formatted = new Date(sec * 1000).toLocaleString("ko-KR");
+
+          setLatest({ code: rawCode, scamType: derived, timestamp: formatted });
+        } else {
+          setLatest(null);
         }
-
-        // 최신 타임스탬프 추적
-        const secVal = toSeconds(data.timestamp);
-        if (typeof secVal === "number" && secVal > latestSeconds) {
-          latestSeconds = secVal;
-          latestData = data;
-        }
-      });
-
-      setCodeCounts(codeMap);
-      setScamCounts(typeMap);
-      setTotal(snap.size);
-
-      if (latestData !== null) {
-        const ld = latestData as ResultDoc; // ✅ 여기서 타입을 확정
-        const rawCode: string = String(ld.cvti ?? ld.mbti ?? "");
-        const derived: ScamTypeKey | "알 수 없음" =
-          (ld.scamType && ALL_TYPES.includes(String(ld.scamType) as ScamTypeKey)
-            ? (ld.scamType as ScamTypeKey)
-            : getScamTypeFromCVTI(rawCode)) || "알 수 없음";
-
-        const sec = toSeconds(ld.timestamp) ?? Math.floor(Date.now() / 1000);
-        const formatted = new Date(sec * 1000).toLocaleString("ko-KR");
-
-        setLatest({ code: rawCode, scamType: derived, timestamp: formatted });
-      } else {
-        setLatest(null);
+      } catch (e: any) {
+        console.error("stats load error:", e?.code, e?.message);
+        setErr(`${e?.code || "error"}: ${e?.message || ""}`);
+      } finally {
+        setLoading(false);
       }
-    };
-
-    fetchData();
+    })();
   }, []);
 
   // 코드(CVTI/MBTI) 차트 데이터 (알파벳순)
-  const codeLabels = Object.keys(codeCounts).sort();
-  const codeValues = codeLabels.map((label) => codeCounts[label]);
+  const codeLabels = useMemo(
+    () => Object.keys(codeCounts).sort(),
+    [codeCounts]
+  );
+  const codeValues = useMemo(
+    () => codeLabels.map((label) => codeCounts[label]),
+    [codeLabels, codeCounts]
+  );
   const codeChartData = {
     labels: codeLabels,
     datasets: [
@@ -274,31 +299,42 @@ const Stats: React.FC = () => {
           📊 실시간 통계
         </h2>
 
-        <div
-          style={{
-            marginBottom: "40px",
-            textAlign: "center",
-            fontSize: "clamp(14px, 4vw, 16px)",
-            color: "#444",
-          }}
-        >
-          <p>
-            <strong>총 응답 수:</strong> {total}명
-          </p>
-          {latest && (
-            <p>
-              <strong>최근 응답자:</strong> {latest.code} ({latest.scamType}) /{" "}
-              {latest.timestamp}
-            </p>
-          )}
-        </div>
-
-        {codeLabels.length === 0 ? (
-          <p style={{ textAlign: "center", fontSize: "14px" }}>
+        {loading && (
+          <p style={{ textAlign: "center", fontSize: 14 }}>
             통계 데이터를 불러오는 중입니다...
           </p>
-        ) : (
+        )}
+
+        {err && (
+          <p style={{ textAlign: "center", fontSize: 14, color: "#b91c1c" }}>
+            오류: {err}
+          </p>
+        )}
+
+        {!loading && !err && (
           <>
+            <div
+              style={{
+                marginBottom: "40px",
+                textAlign: "center",
+                fontSize: "clamp(14px, 4vw, 16px)",
+                color: "#444",
+              }}
+            >
+              <p>
+                <strong>총 응답 수:</strong> {total}명
+              </p>
+              {latest ? (
+                <p>
+                  <strong>최근 응답자:</strong> {latest.code} ({latest.scamType}
+                  ){" / "}
+                  {latest.timestamp}
+                </p>
+              ) : (
+                <p>표시할 데이터가 없습니다.</p>
+              )}
+            </div>
+
             <div
               style={{
                 width: "100%",
