@@ -32,11 +32,6 @@ const Question: React.FC = () => {
     [current, total]
   );
 
-  const PAD_X_ORG = 24; // 기존 좌우 패딩(px) 값에 맞게 조정
-  const PAD_Y = 16; // 상하 패딩 유지값
-  const REDUCE_FACTOR = 0.25; // 75% 감소 → 25%만 남김
-  const PAD_X_NEW = Math.round(PAD_X_ORG * REDUCE_FACTOR);
-
   const qno = useMemo(() => String(current + 1).padStart(2, "0"), [current]);
 
   const handleChoice = (choice: ChoiceLike, idx: number) => {
@@ -65,6 +60,7 @@ const Question: React.FC = () => {
 
   return (
     <div
+      className="q-root"
       style={{
         minHeight: "100svh",
         position: "relative",
@@ -77,6 +73,21 @@ const Question: React.FC = () => {
         boxSizing: "border-box",
       }}
     >
+      {/* ✅ 이 화면 전용 보정 CSS (모바일 문항번호 중앙, 패널 패딩 축소) */}
+      <style>{`
+        @media (max-width: 480px) {
+          .q-panel {
+            padding: 18px 12px !important;   /* 상하 여백 소폭 축소 */
+            margin-bottom: 16px !important;
+          }
+          .q-badge {
+            display: flex !important;
+            justify-content: center !important;
+            margin: 0 auto 10px !important; /* 중앙 정렬 */
+          }
+        }
+      `}</style>
+
       {/* 배경 */}
       <div
         aria-hidden
@@ -84,7 +95,6 @@ const Question: React.FC = () => {
           position: "fixed",
           inset: 0,
           zIndex: 0,
-          // ✅ 따옴표 제거하여 안전하게 주입
           backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(${QUESTION_BG})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -135,6 +145,7 @@ const Question: React.FC = () => {
           >
             {/* 질문 패널 */}
             <motion.section
+              className="q-panel"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -152,9 +163,13 @@ const Question: React.FC = () => {
                 marginBottom: "clamp(16px, 3.2vw, 24px)",
               }}
             >
+              {/* 문항 번호 배지 - 중앙 정렬 */}
               <div
+                className="q-badge"
                 style={{
-                  display: "inline-block",
+                  display: "inline-flex",
+                  justifyContent: "center",
+                  alignItems: "center",
                   padding: "6px 10px",
                   borderRadius: 999,
                   fontSize: 12,
@@ -162,7 +177,8 @@ const Question: React.FC = () => {
                   color: "rgba(255,255,255,0.92)",
                   background: "rgba(255,255,255,0.14)",
                   border: "1px solid rgba(255,255,255,0.26)",
-                  marginBottom: 10,
+                  margin: "0 auto 10px", // 데스크톱도 중앙
+                  width: "fit-content",
                 }}
               >
                 Q {qno} / {total}

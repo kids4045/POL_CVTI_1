@@ -1,5 +1,4 @@
 // src/pages/StartPage.tsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -34,7 +33,6 @@ export default function StartPage() {
     link.as = "image";
     link.href = BG_SRC;
     link.setAttribute("fetchpriority", "high");
-
     document.head.appendChild(link);
     return () => {
       if (link.parentNode) link.parentNode.removeChild(link);
@@ -43,6 +41,7 @@ export default function StartPage() {
 
   return (
     <div
+      className="start-root"
       style={{
         position: "relative",
         height: "100vh",
@@ -55,6 +54,112 @@ export default function StartPage() {
         backgroundColor: "#0b0b0b",
       }}
     >
+      {/* ✅ 이 컴포넌트 전용 보정 CSS */}
+      <style>{`
+        /* 기본 레이아웃 & 타이포 */
+        .home-hero { text-align: center; }
+        .title-eyebrow {
+          display: inline-block;
+          padding: 6px 12px;
+          border-radius: 999px;
+          background: rgba(255,255,255,.18);
+          border: 1px solid rgba(255,255,255,.28);
+          letter-spacing: 0.35em;
+          font-weight: 800;
+          color: #fff;
+          margin-bottom: 10px;
+          text-shadow: 0 1px 2px rgba(0,0,0,.35);
+        }
+        .page-title {
+          margin: 8px 0 6px;
+          font-size: clamp(22px, 5.8vw, 36px);
+          color: #fff;
+          text-shadow: 0 2px 6px rgba(0,0,0,.35);
+          font-weight: 800;
+        }
+        .page-subtitle {
+          margin: 0 0 12px;
+          color: rgba(255,255,255,.95);
+          font-size: clamp(14px, 3.6vw, 18px);
+        }
+        .title-divider {
+          width: 80px; height: 2px; margin: 10px auto 6px;
+          background: rgba(255,255,255,.35); border-radius: 2px;
+        }
+
+        .home-callout {
+          max-width: 520px;
+          padding: 20px 22px; /* 기본 패딩 */
+          border-radius: 18px;
+          backdrop-filter: blur(6px);
+          background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.25);
+          box-shadow: 0 6px 22px rgba(0,0,0,0.28);
+          text-align: center;
+          margin: 8px auto 18px;
+        }
+        .callout-badge {
+          font-size: 12px; opacity: 0.9; margin-bottom: 6px; color: #fff;
+        }
+        .callout-text {
+          font-size: 18px; font-weight: 600; color: #fff;
+        }
+        .callout-text .accent { color: #ffd27d; }
+
+        .cta-row { display: flex; justify-content: center; }
+        .cta-primary {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 14px 28px; border-radius: 999px; border: none; cursor: pointer;
+          background: radial-gradient(120px 60px at 50% 50%, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+          color: #fff; font-weight: 700; font-size: 16px;
+          box-shadow: 0 8px 28px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.16);
+        }
+        .cta-primary:hover { transform: translateY(-1px); transition: transform .2s ease; }
+        .cta-arrow { font-size: 18px; }
+
+        /* 상단 칩/랜덤문구 */
+        .start-top-chips {
+          position: relative;
+          z-index: 2;             /* 워터마크/히어로보다 위로 */
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          justify-content: center;
+          margin-bottom: 6px;
+        }
+        .start-watermark {
+          position: absolute;
+          left: 50%; transform: translateX(-50%);
+          top: 96px;              /* 데스크톱 기준 위치 */
+          font-weight: 800;
+          letter-spacing: 8px;
+          opacity: 0.18; color: #fff;
+          filter: blur(0.3px);
+          z-index: 1;
+        }
+
+        /* === 모바일 전용 보정 === */
+        @media (max-width: 480px) {
+          /* 1) 상단 칩/랜덤문구와 GNPOL 겹침 방지 */
+          .start-root { padding-top: 120px; } /* 상단 여유 공간 확보 */
+          .start-top-chips { margin-bottom: 12px; }
+          .start-watermark {
+            top: 132px;            /* 워터마크를 더 아래로 */
+            font-size: 20px;       /* 살짝 축소 */
+            letter-spacing: 6px;
+            opacity: 0.16;
+          }
+          .home-hero { margin-top: 8px; }     /* 히어로 살짝 더 아래 */
+
+          /* 2) 중앙 로고 10% 축소 */
+          .pol-logo { width: 108px; height: 108px; } /* 120px -> 108px */
+
+          /* 3) ‘사기 1초전’ 블럭 높이 10% 축소 (패딩 약 10%↓) */
+          .home-callout { padding: 18px 20px; }      /* 20/22 -> 18/20 */
+          .callout-text { font-size: 17px; }
+        }
+      `}</style>
+
       {/* 배경 레이어 */}
       <img
         src={BG_SRC}
@@ -92,7 +197,7 @@ export default function StartPage() {
         }}
       />
 
-      {/* 상단 고정 헤더 */}
+      {/* 상단 고정 헤더(칩/가이드/랜덤문구) */}
       <div
         style={{
           position: "absolute",
@@ -108,14 +213,7 @@ export default function StartPage() {
         }}
       >
         {/* 칩 배너 */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
-        >
+        <div className="start-top-chips">
           {["#전국민 사기예방✨", "👮‍♀️경남경찰청👮‍♂️"].map((label) => (
             <span
               key={label}
@@ -154,7 +252,7 @@ export default function StartPage() {
           }
         </div>
 
-        {/* 참여 안내 */}
+        {/* 참여 안내 (랜덤 문구) */}
         <div
           style={{
             color: "#fff",
@@ -190,9 +288,10 @@ export default function StartPage() {
           <div className="title-divider" />
         </header>
 
-        {/* 로고 */}
+        {/* 로고 (모바일에서 10% 축소) */}
         <img
-          src={`${process.env.PUBLIC_URL}/assets/thumbnail.png`} // ✅ 통일
+          className="pol-logo"
+          src={`${process.env.PUBLIC_URL}/assets/thumbnail.png`}
           alt="경남경찰청 로고"
           loading="lazy"
           style={{
@@ -203,7 +302,7 @@ export default function StartPage() {
           }}
         />
 
-        {/* 콜아웃 + CTA */}
+        {/* 콜아웃 + CTA (모바일에서 10% 낮은 높이) */}
         <motion.section
           className="home-callout"
           initial={{ opacity: 0, y: 8 }}
@@ -248,7 +347,7 @@ export default function StartPage() {
         }}
       >
         <img
-          src={`${process.env.PUBLIC_URL}/assets/police-logo.png`} // ✅ 통일
+          src={`${process.env.PUBLIC_URL}/assets/police-logo.png`}
           alt="경남경찰청 로고"
           loading="lazy"
           style={{ height: "24px", marginBottom: "4px" }}
