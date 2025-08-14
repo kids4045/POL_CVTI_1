@@ -27,6 +27,8 @@ import {
 
 // CVTI → ScamType 변환
 import { ScamTypeKey, getScamTypeFromCVTI } from "../data/cvtiToScamType";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 type ResultDoc = {
   cvti?: string;
@@ -263,15 +265,32 @@ const Stats: React.FC = () => {
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}
       >
-        <h2
+        <div
           style={{
-            fontSize: "clamp(20px, 5vw, 28px)",
-            textAlign: "center",
-            marginBottom: "30px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 12,
           }}
         >
-          📊 실시간 통계
-        </h2>
+          <h2 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 28px)" }}>
+            📊 실시간 통계
+          </h2>
+          <button
+            onClick={() => signOut(auth)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "1px solid #e5e7eb",
+              background: "#fff",
+              cursor: "pointer",
+            }}
+            title="로그아웃"
+          >
+            로그아웃
+          </button>
+        </div>
 
         {loading && (
           <p style={{ textAlign: "center", fontSize: 14 }}>
