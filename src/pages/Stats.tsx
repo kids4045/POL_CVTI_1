@@ -1,6 +1,5 @@
 // src/pages/Stats.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 
 // Firestore
 import { db } from "../firebase";
@@ -85,19 +84,6 @@ function toSeconds(ts: unknown): number | null {
 }
 
 const Stats: React.FC = () => {
-  const [params] = useSearchParams();
-  const key = params.get("key");
-
-  // 👉 키 체크(표시용). 보안은 라우터의 RequireAdmin이 담당합니다.
-  if (key !== "4107") {
-    return (
-      <div style={{ padding: "40px", textAlign: "center", color: "#ff4d4f" }}>
-        <h2>🚫 접근 권한이 없습니다.</h2>
-        <p>정상적인 접근 경로로 접속해 주세요.</p>
-      </div>
-    );
-  }
-
   // 상태
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -130,7 +116,7 @@ const Stats: React.FC = () => {
         const q = query(ref, orderBy("createdAt", "desc"), limit(2000));
         const snap = await getDocs(q);
 
-        // ✅ 스냅샷 → 명시적으로 ResultDoc[]로 변환
+        // 결과를 명시적으로 ResultDoc[]로 변환
         const list: ResultDoc[] = snap.docs.map((d) => d.data() as ResultDoc);
 
         // 누적용 맵 초기화
@@ -238,15 +224,9 @@ const Stats: React.FC = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: {
-        display: true,
-        text: title,
-        font: { size: 20 },
-      },
+      title: { display: true, text: title, font: { size: 20 } },
       tooltip: {
-        callbacks: {
-          label: (ctx: any) => ` ${ctx.raw}명`,
-        },
+        callbacks: { label: (ctx: any) => ` ${ctx.raw}명` },
       },
     },
     scales: {
@@ -254,15 +234,11 @@ const Stats: React.FC = () => {
       y: {
         type: "linear",
         beginAtZero: true,
-        ticks: {
-          callback: ((v: unknown) => `${v}명`) as any,
-          precision: 0,
-        },
+        ticks: { callback: ((v: unknown) => `${v}명`) as any, precision: 0 },
       },
     },
   });
 
-  // public/assets 경로 사용
   const bgUrl = `${process.env.PUBLIC_URL}/assets/test-background.png`;
 
   return (
