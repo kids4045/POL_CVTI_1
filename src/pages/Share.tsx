@@ -13,6 +13,7 @@ import ThumbnailCaptureCard from "../components/ThumbnailCaptureCard";
 import { scamTypeIcons } from "../data/scamTypeIcons";
 import { getScamTypeFromCVTI, ScamTypeKey } from "../data/cvtiToScamType";
 import { scamTypeProfiles } from "../data/scamTypeProfiles";
+import { saveResult } from "../services/results";
 
 const CANONICAL_ORIGIN =
   process.env.REACT_APP_CANONICAL_ORIGIN || window.location.origin;
@@ -194,6 +195,22 @@ const Share: React.FC = () => {
   const handleRetry = useCallback(() => {
     navigate("/"); // 홈으로 이동
   }, [navigate]);
+
+  useEffect(() => {
+    if (!cvti || !scamType || !profile) return;
+
+    // 중복 저장 방지용 키
+    const key = `saved_${cvti}_${scamType}_${risk}`;
+    if (localStorage.getItem(key) === "1") return;
+
+    saveResult({ cvti, scamType, risk })
+      .then(() => localStorage.setItem(key, "1"))
+      .catch((e: any) => {
+        console.error("results write error:", e?.code, e?.message);
+        // 필요시 사용자 알림
+        // alert("결과 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      });
+  }, [cvti, scamType, risk, profile]);
 
   const reportUrl = "https://ecrm.police.go.kr/minwon/main";
   const policeUrl = "https://www.police.go.kr/index.do";

@@ -9,6 +9,7 @@ import Stats from "./pages/Stats";
 import { AuthProvider } from "./auth";
 import RequireAuth from "./components/RequireAuth";
 import AdminLogin from "./pages/AdminLogin";
+import RequireAdmin from "./components/RequireAdmin";
 
 export default function App() {
   return (
@@ -27,9 +28,9 @@ export default function App() {
         <Route
           path="/stats"
           element={
-            <RequireAuth>
+            <RequireAdmin>
               <Stats />
-            </RequireAuth>
+            </RequireAdmin>
           }
         />
 
