@@ -43,9 +43,9 @@ export default function StartPage() {
     <div
       className="start-root"
       style={{
-        position: "relative",
-        height: "100vh",
-        width: "100vw",
+        // ✅ 뷰포트에 딱 붙여 좌/상단 검은 테두리 제거
+        position: "fixed",
+        inset: 0,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -56,6 +56,21 @@ export default function StartPage() {
     >
       {/* ✅ 이 컴포넌트 전용 보정 CSS */}
       <style>{`
+        /* 전역 최소 리셋: iOS Safari 기본 여백 방지 */
+        html, body, #root { width: 100%; height: 100%; }
+        body { margin: 0; }
+
+        /* 안전영역(노치) 보정: 좌/우 패딩, 상/하 보정은 개별 요소에서 처리 */
+        .start-root {
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+        }
+
+        /* 100dvh 지원 시(모바일 주소창 높이 변화 대응) 높이 보정 */
+        @supports (height: 100dvh) {
+          .start-root { min-height: 100dvh; }
+        }
+
         /* 기본 레이아웃 & 타이포 */
         .home-hero { text-align: center; }
         .title-eyebrow {
@@ -89,7 +104,7 @@ export default function StartPage() {
 
         .home-callout {
           max-width: 520px;
-          padding: 20px 22px; /* 기본 패딩 */
+          padding: 20px 22px;
           border-radius: 18px;
           backdrop-filter: blur(6px);
           background: rgba(255,255,255,0.12);
@@ -120,7 +135,7 @@ export default function StartPage() {
         /* 상단 칩/랜덤문구 */
         .start-top-chips {
           position: relative;
-          z-index: 2;             /* 워터마크/히어로보다 위로 */
+          z-index: 2;
           display: flex;
           gap: 8px;
           flex-wrap: wrap;
@@ -130,7 +145,7 @@ export default function StartPage() {
         .start-watermark {
           position: absolute;
           left: 50%; transform: translateX(-50%);
-          top: 96px;              /* 데스크톱 기준 위치 */
+          top: 96px;
           font-weight: 800;
           letter-spacing: 8px;
           opacity: 0.18; color: #fff;
@@ -138,24 +153,32 @@ export default function StartPage() {
           z-index: 1;
         }
 
+        /* iPhone 노치 안전영역 보정: 상단 헤더/하단 푸터 */
+        .start-header { top: 18px; }
+        .start-footer { bottom: 14px; }
+        @supports (padding: max(0px)) {
+          .start-header { top: calc(env(safe-area-inset-top) + 18px); }
+          .start-footer { bottom: calc(env(safe-area-inset-bottom) + 14px); }
+        }
+
         /* === 모바일 전용 보정 === */
         @media (max-width: 480px) {
           /* 1) 상단 칩/랜덤문구와 GNPOL 겹침 방지 */
-          .start-root { padding-top: 120px; } /* 상단 여유 공간 확보 */
+          .start-root { padding-top: max(0px, env(safe-area-inset-top)); }
           .start-top-chips { margin-bottom: 12px; }
           .start-watermark {
-            top: 132px;            /* 워터마크를 더 아래로 */
-            font-size: 20px;       /* 살짝 축소 */
+            top: 132px;
+            font-size: 20px;
             letter-spacing: 6px;
             opacity: 0.16;
           }
-          .home-hero { margin-top: 8px; }     /* 히어로 살짝 더 아래 */
+          .home-hero { margin-top: 8px; }
 
           /* 2) 중앙 로고 10% 축소 */
-          .pol-logo { width: 108px; height: 108px; } /* 120px -> 108px */
+          .pol-logo { width: 108px; height: 108px; }
 
-          /* 3) ‘사기 1초전’ 블럭 높이 10% 축소 (패딩 약 10%↓) */
-          .home-callout { padding: 18px 20px; }      /* 20/22 -> 18/20 */
+          /* 3) ‘사기 1초전’ 블럭 높이 10% 축소 */
+          .home-callout { padding: 18px 20px; }
           .callout-text { font-size: 17px; }
         }
       `}</style>
@@ -199,9 +222,9 @@ export default function StartPage() {
 
       {/* 상단 고정 헤더(칩/가이드/랜덤문구) */}
       <div
+        className="start-header"
         style={{
           position: "absolute",
-          top: 18,
           left: 0,
           right: 0,
           zIndex: 2,
@@ -302,7 +325,7 @@ export default function StartPage() {
           }}
         />
 
-        {/* 콜아웃 + CTA (모바일에서 10% 낮은 높이) */}
+        {/* 콜아웃 + CTA */}
         <motion.section
           className="home-callout"
           initial={{ opacity: 0, y: 8 }}
@@ -335,11 +358,13 @@ export default function StartPage() {
         </motion.div>
       </motion.div>
 
-      {/* 하단 로고 및 문구 */}
+      {/* 하단 로고 및 문구 (노치 하단 보정 포함) */}
       <div
+        className="start-footer"
         style={{
           position: "absolute",
-          bottom: "14px",
+          left: 0,
+          right: 0,
           textAlign: "center",
           fontSize: "13px",
           color: "#fff",
