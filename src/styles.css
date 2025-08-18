@@ -639,3 +639,59 @@ body {
 .home-hero .hero-title {
   display: none !important;
 }
+
+/* =========================
+   홈 히어로 겹침 완전 분리 패치
+   - 리드/칩/제목/부제목을 흐름에 고정
+   - 모바일에서 충분한 상하 간격 확보
+   ========================= */
+
+/* 1) 혹시 컴포넌트에서 absolute/transform을 썼어도 흐름으로 되돌림 */
+.home-hero .hero-lead,
+.home-hero .hero-chip,
+.home-hero .page-title,
+.home-hero .hero-title,
+.home-hero .hero-subtitle {
+  position: static !important;
+  transform: none !important;
+}
+
+/* 2) 위→아래로 확실히 쌓이게 하고 기본 간격 부여 */
+.home-hero {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  row-gap: 12px !important; /* 요소 간 기본 간격 */
+}
+
+/* 3) 리드 아래에 제목이 오면 추가 간격(겹침 차단) */
+.home-hero .hero-lead + .page-title,
+.home-hero .hero-lead + .hero-title {
+  margin-top: 18px !important;
+}
+
+/* 4) 텍스트 줄간격을 조금 키워 겹침 여지 축소 */
+.home-hero .hero-lead {
+  line-height: 1.55 !important;
+}
+.home-hero .page-title,
+.home-hero .hero-title {
+  line-height: 1.28 !important;
+}
+
+/* 5) iOS 자동 글자확대 방지 (리드가 커지며 덮치는 현상 예방) */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 6) 모바일에서는 간격 더 확보 */
+@media (max-width: 480px) {
+  .home-hero {
+    row-gap: 14px !important;
+  }
+  .home-hero .hero-lead + .page-title,
+  .home-hero .hero-lead + .hero-title {
+    margin-top: 20px !important;
+  }
+}
