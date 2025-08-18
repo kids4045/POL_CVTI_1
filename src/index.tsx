@@ -13,3 +13,5 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+document.title = "CVTI 테스트";
