@@ -635,3 +635,7 @@ body {
 .share-page * {
   box-sizing: border-box;
 } /* 폭 계산 안정화 */
+
+.home-hero .hero-title {
+  display: none !important;
+}
