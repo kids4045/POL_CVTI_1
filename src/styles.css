@@ -107,12 +107,79 @@ body {
   max-width: 880px;
   padding: 0 16px;
 }
+.home-hero .page-title {
+  margin: 10px 0 6px !important;
+  font-weight: 900 !important;
+  font-size: clamp(22px, 6vw, 28px) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em;
+  background: none !important;
+  color: #fff !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+}
 
 /* ✅ PNG 폴백: 프로젝트에 webp/avif가 없으므로 PNG만 사용 */
 .hero {
   background: #0b0b0b;
   background-size: cover;
   background-position: center;
+}
+
+.hero {
+  /* 시작화면 최상단 컨테이너 클래스 */
+  position: relative; /* absolute 쓰지 않도록 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: calc(24px + var(--safe-top)); /* 노치 여백 확보 */
+  gap: 10px; /* 요소 간 간격 기본값 */
+}
+
+.hero-lead {
+  text-align: center;
+  line-height: 1.5;
+  max-width: 92vw;
+  font-size: clamp(13px, 3.6vw, 16px);
+  margin-top: 8px; /* ⬆ 여백 살짝 증가 */
+}
+
+.hero-chip {
+  /* GNPOL 같은 칩 */
+  margin-top: 6px;
+}
+
+.hero-title {
+  text-align: center;
+  line-height: 1.25; /* ⬆ 줄간격 증가 */
+  font-weight: 800;
+  max-width: 92vw;
+  font-size: clamp(22px, 6vw, 28px); /* ⬇ 상한 살짝 낮춤 */
+  margin-top: 10px; /* ⬆ 타이틀 전 여백 확보 */
+}
+
+.hero-subtitle {
+  text-align: center;
+  line-height: 1.35; /* ⬆ 줄간격 증가 */
+  max-width: 92vw;
+  font-size: clamp(14px, 4vw, 18px);
+  margin-top: 6px;
+}
+
+.hero-divider {
+  width: 56px;
+  height: 2px;
+  opacity: 0.6;
+  margin: 10px 0 12px;
+}
+
+/* 상단 해시태그/배지들이 가로폭 좁을 때 줄바꿈되도록 */
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 92vw;
+  margin: 6px auto 2px;
 }
 
 .title-eyebrow {
@@ -475,6 +542,17 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 0 12px var(--neon-inner),
     0 0 30px var(--neon-inner);
 }
+@media (max-width: 480px) {
+  .hero {
+    gap: 12px;
+  }
+  .hero-title {
+    margin-top: 12px;
+  }
+  .hero-lead {
+    margin-top: 10px;
+  }
+}
 
 /* 모바일 터치 간격 */
 @media (max-width: 600px) {
@@ -543,6 +621,11 @@ body {
       0 0 22px rgba(250, 204, 21, 0.65), 0 0 60px rgba(250, 204, 21, 0.5),
       0 14px 32px rgba(0, 0, 0, 0.22);
   }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html,
