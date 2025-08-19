@@ -45,12 +45,30 @@ const Share: React.FC = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
-  const cvti = params.get("cvti") || params.get("mbti") || "";
+  // ✅ 파라미터 파싱 (대문자화/숫자화 포함)
+  const cvti = (params.get("cvti") || params.get("mbti") || "").toUpperCase();
+  const oParam = params.get("o");
+  const oAxesCount =
+    oParam != null && oParam !== "" && !Number.isNaN(Number(oParam))
+      ? Number(oParam)
+      : undefined;
+
+  // scamType 파라미터가 있으면 우선 사용(백워드 호환), 없으면 객체 형태 입력으로 산출
   const scamTypeParam = params.get("scamType") as ScamTypeKey | null;
-  const scamType = (scamTypeParam || getScamTypeFromCVTI(cvti)) as ScamTypeKey;
+  const scamType = useMemo<ScamTypeKey | "">(() => {
+    if (scamTypeParam) return scamTypeParam;
+    if (!cvti) return "";
+    return (
+      oAxesCount != null
+        ? getScamTypeFromCVTI({ cvti, oAxesCount })
+        : getScamTypeFromCVTI(cvti)
+    ) as ScamTypeKey;
+  }, [scamTypeParam, cvti, oAxesCount]);
+
   const profile = scamType ? scamTypeProfiles[scamType] : undefined;
   const backgroundColor = (scamType && backgroundColors[scamType]) || "#fafafa";
 
+  // ✅ 위험도: 쿼리 risk(0~100) 우선, 없으면 profile.riskLevel(0~5) × 20
   const risk = useMemo(() => {
     const fromQuery = params.get("risk");
     if (fromQuery !== null) return clampSafe(fromQuery, 60);
@@ -58,16 +76,18 @@ const Share: React.FC = () => {
     return clampSafe(fromProfile, 60);
   }, [params, profile]);
 
+  // ✅ 공유 URL: cvti + o(객체 형태 입력 보강) + risk
   const shareUrl = useMemo(() => {
     const url = new URL(CANONICAL_ORIGIN + "/share");
     url.searchParams.set("cvti", cvti);
-    url.searchParams.set("scamType", scamType);
+    if (oAxesCount != null) url.searchParams.set("o", String(oAxesCount));
+    url.searchParams.set("scamType", scamType || "");
     url.searchParams.set("risk", String(risk));
     url.searchParams.set("utm_source", "cvti");
     url.searchParams.set("utm_medium", "share");
     url.searchParams.set("utm_campaign", "gnpol");
     return url.toString();
-  }, [cvti, scamType, risk]);
+  }, [cvti, oAxesCount, scamType, risk]);
 
   const frameRef = useRef<HTMLDivElement | null>(null); // 흰 카드 루트
   const mountRef = useRef<HTMLDivElement | null>(null); // 썸네일 마운트
@@ -96,7 +116,7 @@ const Share: React.FC = () => {
   }, [cvti, scamType, risk, shareUrl]);
 
   const handleSave = useCallback(async () => {
-    if (!frameRef.current) return; // ← cardRef 대신 frameRef
+    if (!frameRef.current) return;
     setSaving(true);
 
     // 컬러 카드만 집기 (없으면 프레임 전체)
@@ -196,24 +216,25 @@ const Share: React.FC = () => {
     navigate("/"); // 홈으로 이동
   }, [navigate]);
 
+  // ✅ /share 진입 시 1회 저장 (cvti + oAxesCount + scamType + risk)
   useEffect(() => {
     if (!cvti || !scamType || !profile) return;
 
-    // 중복 저장 방지용 키
-    const key = `saved_${cvti}_${scamType}_${risk}`;
+    const key = `saved_${cvti}_${oAxesCount ?? "na"}_${scamType}_${risk}`;
     if (localStorage.getItem(key) === "1") return;
 
-    saveResult({ cvti, scamType, risk })
+    // saveResult가 추가 필드를 허용한다면 함께 기록됨(파이어스토어는 초과 필드 무시 X)
+    saveResult({
+      cvti,
+      oAxesCount: oAxesCount ?? null,
+      scamType,
+      risk,
+    })
       .then(() => localStorage.setItem(key, "1"))
       .catch((e: any) => {
         console.error("results write error:", e?.code, e?.message);
-        // 필요시 사용자 알림
-        // alert("결과 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       });
-  }, [cvti, scamType, risk, profile]);
-
-  const reportUrl = "https://ecrm.police.go.kr/minwon/main";
-  const policeUrl = "https://www.police.go.kr/index.do";
+  }, [cvti, oAxesCount, scamType, risk, profile]);
 
   if (!cvti || !scamType || !profile) {
     return (
@@ -290,6 +311,11 @@ const Share: React.FC = () => {
             >
               <span>CVTI</span>
               <strong>{cvti}</strong>
+              {oAxesCount != null && (
+                <span style={{ opacity: 0.7, marginLeft: 6 }}>
+                  O축: {oAxesCount}
+                </span>
+              )}
             </div>
 
             <h2

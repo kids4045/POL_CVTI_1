@@ -1,12 +1,13 @@
 // src/pages/Result.tsx
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { scamTypeProfiles } from "../data/scamTypeProfiles";
 import { motion } from "framer-motion";
-import ResultCaptureCard from "../components/ResultCaptureCard";
+
+import { scamTypeProfiles } from "../data/scamTypeProfiles";
 import { scamTypeIcons } from "../data/scamTypeIcons";
 import scamIcons from "../data/scamIcons";
 import { getScamTypeFromCVTI } from "../data/cvtiToScamType";
+import ResultCaptureCard from "../components/ResultCaptureCard";
 
 // ✅ Share.tsx와 통일된 배경색
 const backgroundColors = {
@@ -41,14 +42,26 @@ const Result: React.FC = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
-  // ✅ CVTI 우선, 레거시 mbti 파라미터도 자동 호환
-  const cvti = params.get("cvti") || params.get("mbti") || "";
-  const scamType = getScamTypeFromCVTI(cvti);
+  // ✅ URL 파라미터: cvti(필수), o(선택: oAxesCount), risk(선택)
+  const cvti = (params.get("cvti") || params.get("mbti") || "").toUpperCase();
+  const oParam = params.get("o");
+  const oAxesCount =
+    oParam != null && oParam !== "" ? Number(oParam) : undefined;
+
+  // ✅ 객체 형태 입력(권장) → 무관심형 판정 안전
+  const scamType = useMemo(() => {
+    if (!cvti) return "";
+    return oAxesCount != null
+      ? getScamTypeFromCVTI({ cvti, oAxesCount })
+      : getScamTypeFromCVTI(cvti);
+  }, [cvti, oAxesCount]);
+
   const profile = scamTypeProfiles[scamType as keyof typeof scamTypeProfiles];
+
   const backgroundColor =
     backgroundColors[scamType as keyof typeof backgroundColors] || "#FFF5E4";
 
-  // ✅ 위험도: 쿼리 파라미터 risk가 있으면 우선(0~100), 없으면 profile.riskLevel(0~5) × 20
+  // ✅ 위험도: 쿼리 risk(0~100) 우선, 없으면 profile.riskLevel(0~5) × 20
   const risk = useMemo(() => {
     const fromQuery = params.get("risk");
     if (fromQuery !== null) return clampSafe(fromQuery, 60);
@@ -56,12 +69,13 @@ const Result: React.FC = () => {
     return clampSafe(fromProfile, 60);
   }, [params, profile]);
 
-  // ✅ 슬로건: 데이터에 따옴표가 포함돼 있어도 겹치지 않도록 정리 후 화면에서만 “ ” 적용
+  // ✅ 슬로건: 데이터에 따옴표가 포함돼 있어도 겹치지 않도록 정리 후 화면에서만 “ ”
   const cleanSlogan = useMemo(() => {
     const raw = String(profile?.slogan ?? "");
     return raw.replace(/^[“"']+|[”"']+$/g, "");
   }, [profile?.slogan]);
 
+  // 필수 데이터 검증
   if (!cvti || !scamType || !profile) {
     return (
       <div style={{ textAlign: "center", padding: "2rem" }}>
@@ -113,13 +127,13 @@ const Result: React.FC = () => {
           textAlign: "center",
         }}
       >
-        {/* ✅ 캡처 카드 (prop 이름이 mbti라면 그대로 전달) */}
+        {/* ✅ 결과 캡처 카드 (prop 이름이 mbti라면 그대로 전달) */}
         <ResultCaptureCard
           mbti={cvti}
           scamType={scamType}
-          shapeUrl={`${
-            window.location.origin
-          }/share?cvti=${cvti}&scamType=${encodeURIComponent(
+          shapeUrl={`${window.location.origin}/share?cvti=${encodeURIComponent(
+            cvti
+          )}&o=${oAxesCount ?? ""}&scamType=${encodeURIComponent(
             scamType
           )}&risk=${risk}`}
         />
@@ -319,6 +333,7 @@ const Result: React.FC = () => {
           {`“${cleanSlogan}”`}
         </blockquote>
 
+        {/* 🔗 공유 페이지로 이동 (cvti + oAxesCount 동반) */}
         <button
           style={{
             marginTop: "30px",
@@ -335,9 +350,9 @@ const Result: React.FC = () => {
           }}
           onClick={() =>
             navigate(
-              `/share?cvti=${cvti}&scamType=${encodeURIComponent(
-                scamType
-              )}&risk=${risk}`
+              `/share?cvti=${encodeURIComponent(cvti)}&o=${
+                oAxesCount ?? ""
+              }&scamType=${encodeURIComponent(scamType)}&risk=${risk}`
             )
           }
           onMouseOver={(e) => {
