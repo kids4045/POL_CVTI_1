@@ -1,6 +1,0 @@
-public/index.html[36m:[m14[36m:[m      href="../assets/[1;31mtest-background.png[m"
-src/pages/Home.tsx[36m:[m7[36m:[mconst BG_SRC = "../assets/[1;31mtest-background.png[m"; // 현재 보유한 단일 배경 파일
-src/pages/Question.tsx[36m:[m16[36m:[mconst QUESTION_BG = "../assets/[1;31mtest-background.png[m";
-src/pages/Question1.tsx[36m:[m17[36m:[mconst QUESTION_BG = "../assets/[1;31mtest-background.png[m";
-src/pages/Stats.tsx[36m:[m240[36m:[m  const bgUrl = `${process.env.PUBLIC_URL}/assets/[1;31mtest-background.png[m`;
-src/styles.css[36m:[m121[36m:[m  background-image: url("../assets/[1;31mtest-background.png[m");
