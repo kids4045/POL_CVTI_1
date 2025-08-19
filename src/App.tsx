@@ -10,6 +10,7 @@ import { AuthProvider } from "./auth";
 import RequireAuth from "./components/RequireAuth";
 import AdminLogin from "./pages/AdminLogin";
 import RequireAdmin from "./components/RequireAdmin";
+import GuidePage from "./pages/GuidePage";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/question" element={<Question />} />
         <Route path="/result" element={<Result />} />
         <Route path="/share" element={<Share />} />
+        <Route path="/guide" element={<GuidePage />} />
 
         {/* ✅ 관리자 로그인 페이지 */}
         <Route path="/admin-login" element={<AdminLogin />} />

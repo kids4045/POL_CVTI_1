@@ -31,12 +31,6 @@ const Question: React.FC = () => {
     () => ((current + 1) / total) * 100,
     [current, total]
   );
-
-  const PAD_X_ORG = 24; // 기존 좌우 패딩(px) 값에 맞게 조정
-  const PAD_Y = 16; // 상하 패딩 유지값
-  const REDUCE_FACTOR = 0.25; // 75% 감소 → 25%만 남김
-  const PAD_X_NEW = Math.round(PAD_X_ORG * REDUCE_FACTOR);
-
   const qno = useMemo(() => String(current + 1).padStart(2, "0"), [current]);
 
   const handleChoice = (choice: ChoiceLike, idx: number) => {
@@ -65,6 +59,7 @@ const Question: React.FC = () => {
 
   return (
     <div
+      className="q-root"
       style={{
         minHeight: "100svh",
         position: "relative",
@@ -77,6 +72,53 @@ const Question: React.FC = () => {
         boxSizing: "border-box",
       }}
     >
+      {/* ✅ 이 화면 전용 보정 CSS */}
+      <style>{`
+        /* 뱃지를 확실히 가운데로 */
+        .q-badge-wrap {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          width: 100% !important;
+        }
+        .q-badge {
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+          padding: 6px 10px;
+          border-radius: 999px;
+          font-size: 12px;
+          letter-spacing: 0.06em;
+          color: rgba(255,255,255,0.92);
+          background: rgba(255,255,255,0.14);
+          border: 1px solid rgba(255,255,255,0.26);
+          margin: 0 0 10px; /* 좌우는 래퍼가 센터링 */
+          width: fit-content;
+        }
+
+        /* 질문 패널 */
+        .q-panel {
+          position: relative;
+          padding: 24px clamp(4px, 0.9vw, 8px);
+          border-radius: 20px;
+          background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.10));
+          border: 1px solid rgba(255,255,255,0.32);
+          box-shadow:
+            inset 0 0 0 1px rgba(255,255,255,0.10),
+            0 14px 32px rgba(0,0,0,0.28),
+            0 0 14px var(--neon-outer),
+            0 0 36px var(--neon-outer);
+          backdrop-filter: blur(10px) saturate(160%);
+          -webkit-backdrop-filter: blur(10px) saturate(160%);
+          margin-bottom: clamp(16px, 3.2vw, 24px);
+        }
+
+        /* 모바일: 질문 블럭 상하 여백 축소 */
+        @media (max-width: 480px) {
+          .q-panel { padding: 18px 12px !important; margin-bottom: 16px !important; }
+        }
+      `}</style>
+
       {/* 배경 */}
       <div
         aria-hidden
@@ -84,7 +126,6 @@ const Question: React.FC = () => {
           position: "fixed",
           inset: 0,
           zIndex: 0,
-          // ✅ 따옴표 제거하여 안전하게 주입
           backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(${QUESTION_BG})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -135,37 +176,16 @@ const Question: React.FC = () => {
           >
             {/* 질문 패널 */}
             <motion.section
+              className="q-panel"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              style={{
-                position: "relative",
-                padding: "24px clamp(4px, 0.9vw, 8px)",
-                borderRadius: 20,
-                background:
-                  "linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.10))",
-                border: "1px solid rgba(255,255,255,0.32)",
-                boxShadow:
-                  "inset 0 0 0 1px rgba(255,255,255,0.10), 0 14px 32px rgba(0,0,0,0.28), 0 0 14px var(--neon-outer), 0 0 36px var(--neon-outer)",
-                backdropFilter: "blur(10px) saturate(160%)",
-                WebkitBackdropFilter: "blur(10px) saturate(160%)",
-                marginBottom: "clamp(16px, 3.2vw, 24px)",
-              }}
             >
-              <div
-                style={{
-                  display: "inline-block",
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  fontSize: 12,
-                  letterSpacing: "0.06em",
-                  color: "rgba(255,255,255,0.92)",
-                  background: "rgba(255,255,255,0.14)",
-                  border: "1px solid rgba(255,255,255,0.26)",
-                  marginBottom: 10,
-                }}
-              >
-                Q {qno} / {total}
+              {/* 문항 번호 배지 - 확정 중앙 */}
+              <div className="q-badge-wrap">
+                <div className="q-badge">
+                  Q {qno} / {total}
+                </div>
               </div>
 
               <h2

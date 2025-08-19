@@ -44,25 +44,82 @@ export interface CVTICalcResult {
 }
 
 /** ─────────────────────────────────────────────────────────
- *  O(무관심) 채택/타이브레이크 설정
- *  - 문항당 각 축 4개라면 보통 2 이상에서 O 채택을 고려
- *  - 글로벌로 O가 2축 이상이면 최종 성향을 '무관심형'으로 처리(매핑 유틸에서)
- *  - 동점 타이브레이크(보수적/안전 측) 기본값:
- *      TQ: Q,  SN: S,  PG: G,  JP: J
- *    → 필요 시 아래 상수를 바꾸면 됨
+ *  O(무관심) 처리 규칙 — B 방법
+ *  - 각 축의 O 카운트가
+ *      • 3 이상이면: 무조건 O
+ *      • 정확히 2이면: 확률 p (기본 0.5)로만 O
+ *      • 0~1이면: O 아님
+ *  - 글로벌로 O가 2축 이상이면 최종 성향을 '무관심형'으로 취급(매핑 유틸에서)
+ *  - 동점(tie) 기본값(보수적 기준은 유지하되, 필요 시 변경 가능):
+ *      TQ: Q,  SN: S,  PG: P,  JP: P
  *  ───────────────────────────────────────────────────────── */
-export const O_AXIS_THRESHOLD = 2; // 축별 O 채택 기준 (>=)
-export const O_GLOBAL_THRESHOLD = 2; // 2축 이상 O면 '무관심형'(매핑에서 사용)
+export const O_GLOBAL_THRESHOLD = 2; // 2축 이상 O면 '무관심형'(매핑 단계에서 사용)
 
+// 동점 타이브레이크 기본 문자
 const TIE_TQ: "T" | "Q" = "Q";
 const TIE_SN: "S" | "N" = "S";
 const TIE_PG: "P" | "G" = "P";
 const TIE_JP: "J" | "P" = "P";
 
+// 옵션: 확률/랜덤/타이브레이크 제어 (선택)
+export type CVTICalcOptions = {
+  pForO2?: number; // O==2일 때 O로 채택할 확률 (기본 0.5)
+  rng?: () => number; // 난수 함수 주입(테스트 재현성용), 기본 Math.random
+  tieBreak?:
+    | "left"
+    | "right"
+    | "random"
+    | {
+        TQ?: "T" | "Q";
+        SN?: "S" | "N";
+        PG?: "P" | "G";
+        JP?: "J" | "P";
+      };
+};
+
+// 내부 유틸: 동점 처리
+function pickByTieBreak<A extends string, B extends string>(
+  left: A,
+  right: B,
+  tie:
+    | "left"
+    | "right"
+    | "random"
+    | { TQ?: any; SN?: any; PG?: any; JP?: any } // 축별 직접 지정도 허용
+    | undefined,
+  rng: () => number,
+  fallbackLeft: A // 축별 기본값(본 파일 상단 상수)
+): A | B {
+  if (!tie) return fallbackLeft;
+  if (typeof tie === "string") {
+    if (tie === "left") return left;
+    if (tie === "right") return right;
+    if (tie === "random") return rng() < 0.5 ? left : right;
+    return fallbackLeft;
+  }
+  // 객체로 축별 타이를 직접 지정한 경우
+  // (여기서는 호출부에서 축별로 적절히 fallbackLeft를 넣어줌)
+  return fallbackLeft;
+}
+
+// 내부 유틸: B 방법의 O 채택 결정
+function decideO(oCount: number, pForO2: number, rng: () => number): boolean {
+  if (oCount >= 3) return true;
+  if (oCount === 2) return rng() < pForO2;
+  return false;
+}
+
 /** 메인 계산 함수: CVTIImpact[]를 받아 CVTI 문자열과 부가정보를 반환 */
 export function calculateCVTI(
-  rawAnswers: Array<CVTIImpact | null | undefined>
+  rawAnswers: Array<CVTIImpact | null | undefined>,
+  options: CVTICalcOptions = {}
 ): CVTICalcResult {
+  const {
+    pForO2 = 0.5,
+    rng = Math.random,
+    tieBreak, // 전역 타이브레이크 정책 (필요 시)
+  } = options;
+
   let T = 0,
     Q = 0,
     S = 0,
@@ -79,7 +136,6 @@ export function calculateCVTI(
   const answers = (rawAnswers ?? []).filter(Boolean) as CVTIImpact[];
 
   for (const a of answers) {
-    // a는 이제 CVTIImpact 형태라고 가정, 그래도 혹시 모르니 안전 연산자 사용
     T += a.T ?? 0;
     Q += a.Q ?? 0;
     S += a.S ?? 0;
@@ -95,47 +151,50 @@ export function calculateCVTI(
     OJP += a.OJP ?? 0;
   }
 
-  // ── 축별 픽 (O 우선 규칙 → 임계치 이상이며 해당 축 내 최대인 경우 O)
-  const pickTQ: "T" | "Q" | "O" =
-    OTQ >= O_AXIS_THRESHOLD && OTQ >= Math.max(T, Q)
-      ? "O"
-      : T === Q
-      ? TIE_TQ
-      : T > Q
-      ? "T"
-      : "Q";
+  // ── 축별 O 여부 (B 방법: 카운트 기준 + 확률)
+  const isOTQ_O = decideO(OTQ, pForO2, rng);
+  const isOSN_O = decideO(OSN, pForO2, rng);
+  const isOPG_O = decideO(OPG, pForO2, rng);
+  const isOJP_O = decideO(OJP, pForO2, rng);
 
-  const pickSN: "S" | "N" | "O" =
-    OSN >= O_AXIS_THRESHOLD && OSN >= Math.max(S, N)
-      ? "O"
-      : S === N
-      ? TIE_SN
-      : S > N
-      ? "S"
-      : "N";
+  // ── 축별 픽 (O가 되지 않은 경우에만 T/Q, S/N, P/G, J/P 비교 + 타이브레이크)
+  const pickTQ: "T" | "Q" | "O" = isOTQ_O
+    ? "O"
+    : T === Q
+    ? (pickByTieBreak("T", "Q", tieBreak, rng, TIE_TQ) as "T" | "Q")
+    : T > Q
+    ? "T"
+    : "Q";
 
-  const pickPG: "P" | "G" | "O" =
-    OPG >= O_AXIS_THRESHOLD && OPG >= Math.max(P, G)
-      ? "O"
-      : P === G
-      ? TIE_PG
-      : P > G
-      ? "P"
-      : "G";
+  const pickSN: "S" | "N" | "O" = isOSN_O
+    ? "O"
+    : S === N
+    ? (pickByTieBreak("S", "N", tieBreak, rng, TIE_SN) as "S" | "N")
+    : S > N
+    ? "S"
+    : "N";
 
-  const pickJP: "J" | "P" | "O" =
-    OJP >= O_AXIS_THRESHOLD && OJP >= Math.max(J, P2)
-      ? "O"
-      : J === P2
-      ? TIE_JP
-      : J > P2
-      ? "J"
-      : "P";
+  const pickPG: "P" | "G" | "O" = isOPG_O
+    ? "O"
+    : P === G
+    ? (pickByTieBreak("P", "G", tieBreak, rng, TIE_PG) as "P" | "G")
+    : P > G
+    ? "P"
+    : "G";
+
+  const pickJP: "J" | "P" | "O" = isOJP_O
+    ? "O"
+    : J === P2
+    ? (pickByTieBreak("J", "P", tieBreak, rng, TIE_JP) as "J" | "P")
+    : J > P2
+    ? "J"
+    : "P";
 
   const axisPicks = { TQ: pickTQ, SN: pickSN, PG: pickPG, JP: pickJP };
   const oAxesCount = [pickTQ, pickSN, pickPG, pickJP].filter(
     (x) => x === "O"
   ).length;
+
   const cvti = `${pickTQ}${pickSN}${pickPG}${pickJP}`;
 
   return {
