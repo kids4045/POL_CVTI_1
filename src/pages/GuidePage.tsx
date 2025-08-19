@@ -27,6 +27,33 @@ export default function GuidePage() {
         flexDirection: "column",
       }}
     >
+      {/* 상단 타이틀 */}
+      <header
+        style={{
+          textAlign: "center",
+          paddingTop: "40px",
+          color: "#fff",
+          textShadow: "0 2px 6px rgba(0,0,0,0.6)",
+        }}
+      >
+        <motion.h1
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          style={{ fontSize: "28px", fontWeight: 800, marginBottom: "10px" }}
+        >
+          피싱 유형 CVTI 테스트
+        </motion.h1>
+        <motion.h2
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          style={{ fontSize: "18px", fontWeight: 500 }}
+        >
+          지금 당신의 CVTI는 얼마나 안전한가요?
+        </motion.h2>
+      </header>
+
       {/* 중앙 안내 패널 */}
       <div
         style={{
