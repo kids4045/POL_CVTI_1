@@ -732,7 +732,7 @@ html {
 /* ===== GuidePage 타이틀 영역 (반응형) ===== */
 .guide-header {
   text-align: center;
-  padding-top: 100px;
+  padding-top: 85px;
   color: #fff;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
   text-wrap: balance; /* 지원 브라우저에서 제목 줄 균형 */
@@ -745,8 +745,8 @@ html {
   margin: 0 0 10px 0;
   background: linear-gradient(
     90deg,
-    #ffffff,
-    #f5f5f5,
+    #fafafa,
+    #f2f2f2,
     #eeeeee
   ); /* ⬅️ 더 밝게 */
   -webkit-background-clip: text;
@@ -759,7 +759,7 @@ html {
   font-size: 22px;
   font-weight: 600;
   margin: 0; /* 제목과 간격은 위에서 조절 */
-  background: linear-gradient(90deg, #ffffff, #f2f2f2);
+  background: linear-gradient(90deg, #fafafa, #f2f2f2);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
