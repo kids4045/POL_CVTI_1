@@ -654,18 +654,14 @@ body {
 
 .cvti-neon-btn:hover {
   transform: translateY(-1px) scale(1.015);
-  box-shadow:
-    0 0 10px rgba(255, 212, 0, 0.65),
-    0 0 22px rgba(255, 212, 0, 0.45),
+  box-shadow: 0 0 10px rgba(255, 212, 0, 0.65), 0 0 22px rgba(255, 212, 0, 0.45),
     0 0 40px rgba(255, 212, 0, 0.25);
   filter: brightness(1.05);
 }
 
 .cvti-neon-btn:active {
   transform: translateY(0) scale(0.99);
-  box-shadow:
-    0 0 8px rgba(255, 212, 0, 0.5),
-    0 0 16px rgba(255, 212, 0, 0.35);
+  box-shadow: 0 0 8px rgba(255, 212, 0, 0.5), 0 0 16px rgba(255, 212, 0, 0.35);
 }
 
 .cvti-neon-btn:focus-visible {
@@ -733,4 +729,70 @@ html {
     margin-top: 20px !important;
   }
 }
+/* ===== GuidePage 타이틀 영역 (반응형) ===== */
+.guide-header {
+  text-align: center;
+  padding-top: 100px; /* 기본: 더 아래로 */
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
 
+.guide-title {
+  font-size: 36px; /* 데스크톱 기본 */
+  font-weight: 900;
+  margin-bottom: 14px;
+  background: linear-gradient(90deg, #ffdd55, #ff77cc, #66ccff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.guide-subtitle {
+  font-size: 22px; /* 데스크톱 기본 */
+  font-weight: 600;
+  background: linear-gradient(90deg, #ffffff, #ccccff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* 태블릿(<= 768px): 약간 축소 + 상단 패딩 조정 */
+@media (max-width: 768px) {
+  .guide-header {
+    padding-top: 80px;
+  }
+  .guide-title {
+    font-size: 32px;
+  }
+  .guide-subtitle {
+    font-size: 20px;
+  }
+}
+
+/* 모바일(<= 480px): 더 축소 + 상단 패딩 여유 */
+@media (max-width: 480px) {
+  .guide-header {
+    padding-top: 72px;
+  }
+  .guide-title {
+    font-size: 28px;
+  }
+  .guide-subtitle {
+    font-size: 18px;
+  }
+}
+
+/* 소형 모바일(<= 360px): 최소 가독 사이즈 */
+@media (max-width: 360px) {
+  .guide-header {
+    padding-top: 64px;
+  }
+  .guide-title {
+    font-size: 24px;
+  }
+  .guide-subtitle {
+    font-size: 16px;
+  }
+}
