@@ -73,23 +73,21 @@ export default function GuidePage() {
             textAlign: "center",
           }}
         >
-          <motion.h1
+          <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.35 }}
+            className="guide-disclaimer"
             style={{
               fontSize: "18px",
-              lineHeight: 1.7,
               fontWeight: 600,
               margin: "0 0 18px 0",
-              letterSpacing: "0.2px",
-              whiteSpace: "pre-line",
             }}
           >
             {`[본 테스트는 '피싱사기'의 경각심을 높이기 위해 제작되었으며,
 결과 도출 및 위험도 선정 등의 항목에서
 주관적 요소가 일부 포함될 수 있음을 알려드립니다.]`}
-          </motion.h1>
+          </motion.p>
 
           <div style={{ marginTop: 20 }}>
             <button

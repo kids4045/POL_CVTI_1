@@ -738,10 +738,10 @@ html {
 }
 
 .guide-title {
-  font-size: 36px; /* 데스크톱 기본 */
+  font-size: 36px;
   font-weight: 900;
   margin-bottom: 14px;
-  background: linear-gradient(90deg, #ffdd55, #ff77cc, #66ccff);
+  background: linear-gradient(90deg, #ffffff, #dddddd, #f5f5f5);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -749,9 +749,9 @@ html {
 }
 
 .guide-subtitle {
-  font-size: 22px; /* 데스크톱 기본 */
+  font-size: 22px;
   font-weight: 600;
-  background: linear-gradient(90deg, #ffffff, #ccccff);
+  background: linear-gradient(90deg, #eeeeee, #cccccc);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -795,4 +795,19 @@ html {
   .guide-subtitle {
     font-size: 16px;
   }
+}
+/* GuidePage: 안내문 줄바꿈/가독성 */
+.guide-disclaimer {
+  white-space: pre-line; /* \n 유지 */
+  word-break: keep-all; /* 한국어 단어 중간 끊김 방지 (공백 기준 줄바꿈) */
+  overflow-wrap: break-word; /* 긴 토큰(URL 등)만 예외적으로 줄바꿈 */
+  line-height: 1.7;
+  letter-spacing: 0.2px;
+}
+
+/* 제목/부제 줄바꿈 품질 향상 (지원 브라우저에서만 적용) */
+.guide-header,
+.guide-title,
+.guide-subtitle {
+  text-wrap: balance; /* 지원되면 제목 줄 균형 잡아줌 (크롬/엣지 최신) */
 }
