@@ -28,25 +28,18 @@
   "devDependencies": {
     "@types/react": "18.2.38",
     "@types/react-dom": "18.2.15",
-<<<<<<< HEAD
     "ts-node": "^10.9.2",
-    "typescript": "^4.9.5"
-=======
+    "typescript": "4.9.5",
     "puppeteer": "^24.16.2",
-    "sharp": "^0.34.3",
-    "typescript": "4.9.5"
->>>>>>> b2a02807a8d980527ade2bfe52db3132539b3256
+    "sharp": "^0.34.3"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-<<<<<<< HEAD
-    "dump:cvti": "node --loader ts-node/esm scripts/dump-cvti-map.ts"
-=======
+    "dump:cvti": "node --loader ts-node/esm scripts/dump-cvti-map.ts",
     "make:og": "node scripts/make-og.js"
->>>>>>> b2a02807a8d980527ade2bfe52db3132539b3256
   },
   "eslintConfig": {
     "extends": [
