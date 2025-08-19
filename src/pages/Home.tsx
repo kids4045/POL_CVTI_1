@@ -225,8 +225,8 @@ export default function StartPage() {
         >
           <button
             className="cta-primary"
-            onClick={() => navigate("/question")}
-            aria-label="테스트 시작하기"
+            onClick={() => navigate("/guide")}
+            aria-label="안내 페이지로 이동"
           >
             시작하기
             <span className="cta-arrow" aria-hidden>

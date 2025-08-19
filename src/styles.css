@@ -559,3 +559,36 @@ body {
 .share-page * {
   box-sizing: border-box;
 } /* 폭 계산 안정화 */
+
+/* GuidePage: 네온 느낌 버튼 + 접근성 포커스 */
+.cvti-neon-btn {
+  display: inline-block;
+  padding: 14px 22px;
+  min-width: 220px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: #ffd400; /* 경고/주의를 연상시키는 명도 높은 노랑 */
+  color: #222;
+  box-shadow: 0 0 0 rgba(255, 212, 0, 0);
+  transition: transform 140ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.cvti-neon-btn:hover {
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: 0 0 10px rgba(255, 212, 0, 0.65), 0 0 22px rgba(255, 212, 0, 0.45),
+    0 0 40px rgba(255, 212, 0, 0.25);
+  filter: brightness(1.05);
+}
+
+.cvti-neon-btn:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: 0 0 8px rgba(255, 212, 0, 0.5), 0 0 16px rgba(255, 212, 0, 0.35);
+}
+
+.cvti-neon-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
