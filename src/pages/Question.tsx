@@ -1,5 +1,5 @@
 // /src/pages/Question.tsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { questions } from "../data/questions";
 import { calculateCVTI, CVTIImpact } from "../utils/calculateCVTI";
@@ -33,8 +33,9 @@ const Question: React.FC = () => {
   );
   const qno = useMemo(() => String(current + 1).padStart(2, "0"), [current]);
 
+  // ▶ 다음(선택 시 자동 진행)
   const handleChoice = (choice: ChoiceLike, idx: number) => {
-    if (isLocked) return;
+    if (isLocked || isEnding) return;
     setSelectedIdx(idx);
     setIsLocked(true);
 
@@ -56,6 +57,29 @@ const Question: React.FC = () => {
       }
     }, 180);
   };
+
+  // ◀ 이전(좌측 하단 버튼 + 키보드 ←)
+  const canGoPrev = current > 0 && !isEnding;
+  const handlePrev = useCallback(() => {
+    if (!canGoPrev) return;
+    // 마지막에 추가된 답변 제거하고 이전 문항으로 이동
+    setAnswers((prev) => (prev.length ? prev.slice(0, -1) : prev));
+    setCurrent((prev) => Math.max(0, prev - 1));
+    setSelectedIdx(null);
+    setIsLocked(false);
+  }, [canGoPrev]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft") return;
+      // 입력 포커스 시 방해 금지
+      const t = document.activeElement as HTMLElement | null;
+      if (t && ["INPUT", "TEXTAREA"].includes(t.tagName)) return;
+      handlePrev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handlePrev]);
 
   return (
     <div
@@ -286,6 +310,22 @@ const Question: React.FC = () => {
         >
           결과 계산 중…
         </motion.div>
+      )}
+
+      {/* ◀ 이전 문항 고정 버튼 (좌측 하단) */}
+      {!isEnding && (
+        <motion.button
+          type="button"
+          className="q-prev-fab"
+          onClick={handlePrev}
+          disabled={!canGoPrev}
+          aria-label="이전 문항으로 이동"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          ◀ 이전
+        </motion.button>
       )}
     </div>
   );
