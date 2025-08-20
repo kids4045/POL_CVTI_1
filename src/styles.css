@@ -984,3 +984,90 @@ html {
     padding-top: 12px !important;
   }
 }
+/* ===== Question: '이전' 버튼 미려화 & 반응형 ===== */
+.q-prev-fab {
+  position: fixed;
+  left: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 10000;
+
+  /* 보기 좋은 알약 버튼 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 12px 16px;
+  border-radius: 9999px;
+
+  /* glass + outline */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.18),
+    rgba(255, 255, 255, 0.1)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+
+  /* 모바일에서 꽉 차는 현상 방지 */
+  width: auto !important;
+  max-width: none !important;
+  white-space: nowrap;
+
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.2s ease, opacity 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.q-prev-fab:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+.q-prev-fab:active {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+.q-prev-fab:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* 데스크톱: 더 크고 선명하게 */
+@media (min-width: 1024px) {
+  .q-prev-fab {
+    left: 18px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+    padding: 14px 18px;
+    font-size: 15.5px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  }
+}
+
+/* 모바일: 버튼은 키우되 화면 방해 최소화(조금 더 컴팩트) */
+@media (max-width: 480px) {
+  .q-prev-fab {
+    left: 10px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    padding: 11px 14px;
+    font-size: 14px;
+    opacity: 0.95; /* 살짝 투명해 시야 방해 줄임 */
+    max-width: 60vw; /* 혹시 레이아웃 영향 받더라도 절대 꽉 차지 않도록 */
+  }
+}
+
+/* 초소형 기기 보정 */
+@media (max-width: 360px) {
+  .q-prev-fab {
+    padding: 10px 12px;
+    font-size: 13.5px;
+    max-width: 66vw;
+  }
+}
