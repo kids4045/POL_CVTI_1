@@ -872,3 +872,32 @@ html {
     padding: 6px 11px;
   }
 }
+
+/* === 캠페인 배너 크롭(상하 여백 75% 수준 축소) === */
+.campaign-banner {
+  /* 너비는 600px 한도, 반응형으로 95vw까지 */
+  width: min(600px, 95vw);
+  margin: 10px auto 18px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
+
+  /* 핵심: 세로를 얇게 잡아 상하 여백을 잘라냅니다 */
+  /* 600x450(4:3) 원본 대비, 높이를 확 줄여 상하를 크롭 → 체감상 70~80% 여백 축소 */
+  aspect-ratio: 3.2 / 1; /* 필요하면 3.0~3.6 사이로 미세조정 */
+}
+
+.campaign-banner img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover; /* 컨테이너에 맞춰 '자르기' */
+  object-position: 50% 52%; /* 중앙 기준 약간 아래로 (위여백이 더 크면 52~55% 조정) */
+}
+
+/* 작은 화면에선 살짝 더 높게(가독성) */
+@media (max-width: 480px) {
+  .campaign-banner {
+    aspect-ratio: 3 / 1;
+  }
+}

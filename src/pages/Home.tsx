@@ -243,18 +243,13 @@ export default function StartPage() {
         </header>
 
         {/* 로고 */}
-        <img
-          className="pol-logo"
-          src={`${process.env.PUBLIC_URL}/assets/thumbnail.png`}
-          alt="경남경찰청 로고"
-          loading="lazy"
-          style={{
-            height: "450px",
-            width: "600px",
-            marginBottom: "20px",
-            marginTop: "16px",
-          }}
-        />
+        <div className="campaign-banner">
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/thumbnail.png`}
+            alt="경남경찰청 캠페인 배너"
+            loading="lazy"
+          />
+        </div>
 
         {/* 콜아웃 + CTA */}
         <motion.section
