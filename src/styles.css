@@ -873,31 +873,29 @@ html {
   }
 }
 
-/* === 캠페인 배너 크롭(상하 여백 75% 수준 축소) === */
+/* === 캠페인 배너: 크롭 없이 전체 보이기(조금 더 작게) === */
 .campaign-banner {
-  /* 너비는 600px 한도, 반응형으로 95vw까지 */
-  width: min(600px, 95vw);
+  /* 기존보다 살짝 줄여 높이도 같이 줄이기 */
+  width: min(520px, 88vw); /* 필요하면 500px~560px 사이에서 조정 */
   margin: 10px auto 18px;
   border-radius: 16px;
-  overflow: hidden;
+  /* 크롭 제거 */
+  overflow: visible;
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
-
-  /* 핵심: 세로를 얇게 잡아 상하 여백을 잘라냅니다 */
-  /* 600x450(4:3) 원본 대비, 높이를 확 줄여 상하를 크롭 → 체감상 70~80% 여백 축소 */
-  aspect-ratio: 3.2 / 1; /* 필요하면 3.0~3.6 사이로 미세조정 */
+  /* aspect-ratio 제거! (이게 있으면 다시 잘립니다) */
 }
 
 .campaign-banner img {
-  width: 100%;
-  height: 100%;
   display: block;
-  object-fit: cover; /* 컨테이너에 맞춰 '자르기' */
-  object-position: 50% 52%; /* 중앙 기준 약간 아래로 (위여백이 더 크면 52~55% 조정) */
+  width: 100%;
+  height: auto; /* 원본 비율 유지 */
+  object-fit: contain; /* 전체 보여주기 (크롭 X) */
+  object-position: center;
 }
 
-/* 작은 화면에선 살짝 더 높게(가독성) */
+/* 모바일에서는 더 작게 보여 잘림/과도한 높이 방지 */
 @media (max-width: 480px) {
   .campaign-banner {
-    aspect-ratio: 3 / 1;
+    width: min(480px, 90vw);
   }
 }
