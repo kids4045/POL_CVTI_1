@@ -355,22 +355,28 @@ const Result: React.FC = () => {
 
         {/* ✅ 캠페인 문구 + 로고 */}
         <div
-          style={{
-            textAlign: "center",
-            marginTop: "40px",
-            fontSize: "14px",
-            color: "#444",
-            opacity: 0.9,
-          }}
-        >
-          <img
-            src="/assets/police-logo.png"
-            alt="경남경찰청 로고"
-            style={{ height: "40px", marginBottom: "6px" }}
-          />
-          <div>이 캠페인은 경남경찰청과 함께합니다</div>
-        </div>
+  style={{
+    textAlign: "center",
+    marginTop: "40px",
+    fontSize: "14px",
+    color: "#444",
+    opacity: 0.9,
+  }}
+>
+  <img
+    src="/assets/police-logo.png"
+    alt="경남경찰청 로고"
+    style={{ height: "40px", marginBottom: "6px" }}
+  />
+  <div>이 캠페인은 경남경찰청과 함께합니다</div>
+
+  {/* ⬇️ 추가 줄 */}
+  <div style={{ marginTop: 6, fontSize: "12px", opacity: 0.8 }}>
+    [본 테스트의 무단 복제, 변경, 배포는 법적 제재를 받을 수 있습니다.]
+  </div>
+</div>
       </motion.div>
+      <div>[GUIDE_MARK_2025-08-20-1]</div>
     </div>
   );
 };
