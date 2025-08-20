@@ -873,7 +873,6 @@ html {
   }
 }
 
-/* === 캠페인 배너: 크롭 없이 전체 보이기(조금 더 작게) === */
 /* 기존: aspect-ratio: 3.2 / 1;  → 너무 얕아 잘림 */
 .campaign-banner {
   width: min(600px, 95vw);
@@ -883,15 +882,15 @@ html {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
   /* 높이를 더 주어 잘림 완화 */
   aspect-ratio: 2.6 / 1; /* 2.8~2.4 사이에서 상황에 맞게 조정 가능 */
-  height: clamp(120px, 22vw, 160px);
 }
 
 .campaign-banner img {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
-  object-position: center;
+  object-fit: cover;
+  /* 보이는 영역을 약간 위로/아래로 이동해 핵심 영역 맞추기 */
+  object-position: 50% 48%; /* 45%~55% 사이로 미세 조정 */
 }
 
 /* 모바일은 더 여유를 줘서 잘림 방지 */
