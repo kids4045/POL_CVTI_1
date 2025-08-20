@@ -290,7 +290,7 @@ export default function StartPage() {
           src={`${process.env.PUBLIC_URL}/assets/police-logo.png`}
           alt="경남경찰청 로고"
           loading="lazy"
-          style={{ height: "48px" }}
+          style={{ height: "36px" }}
         />
         <div>이 캠페인은 경남경찰청과 함께합니다</div>
       </div>
