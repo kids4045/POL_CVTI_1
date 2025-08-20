@@ -874,28 +874,29 @@ html {
 }
 
 /* === 캠페인 배너: 크롭 없이 전체 보이기(조금 더 작게) === */
+/* 기존: aspect-ratio: 3.2 / 1;  → 너무 얕아 잘림 */
 .campaign-banner {
-  /* 기존보다 살짝 줄여 높이도 같이 줄이기 */
-  width: min(520px, 88vw); /* 필요하면 500px~560px 사이에서 조정 */
+  width: min(600px, 95vw);
   margin: 10px auto 18px;
   border-radius: 16px;
-  /* 크롭 제거 */
-  overflow: visible;
+  overflow: hidden;
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
-  /* aspect-ratio 제거! (이게 있으면 다시 잘립니다) */
+  /* 높이를 더 주어 잘림 완화 */
+  aspect-ratio: 2.6 / 1; /* 2.8~2.4 사이에서 상황에 맞게 조정 가능 */
+  height: clamp(120px, 22vw, 160px);
 }
 
 .campaign-banner img {
-  display: block;
   width: 100%;
-  height: auto; /* 원본 비율 유지 */
-  object-fit: contain; /* 전체 보여주기 (크롭 X) */
+  height: 100%;
+  display: block;
+  object-fit: contain;
   object-position: center;
 }
 
-/* 모바일에서는 더 작게 보여 잘림/과도한 높이 방지 */
+/* 모바일은 더 여유를 줘서 잘림 방지 */
 @media (max-width: 480px) {
   .campaign-banner {
-    width: min(480px, 90vw);
+    aspect-ratio: 2.4 / 1;
   }
 }
