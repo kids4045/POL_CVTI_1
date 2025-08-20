@@ -70,14 +70,6 @@ export default function GuidePage() {
         >
           피싱 유형 PVTI 테스트
         </motion.h1>
-        <motion.h2
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.16, duration: 0.4 }}
-          className="guide-subtitle"
-        >
-          지금 당신의 PVTI는 얼마나 안전한가요?
-        </motion.h2>
       </header>
 
       {/* 중앙 안내 패널 */}
@@ -113,10 +105,8 @@ export default function GuidePage() {
             style={{ fontSize: "18px", fontWeight: 600, margin: "0 0 18px 0" }}
           >
             {`[본 테스트는 '피싱사기'의 경각심을 높이기 위해 제작되었으며,
-최근 알려진 피싱 유형 16가지를 바탕으로 
-그에 따른 대응 유형을 선택하는 방식으로 구성되었습니다.
-결과 도출 및 위험도 선정 등의 항목에서 
-주관적 요소가 일부 포함될 수 있음을 알려드립니다.]`}
+최근 알려진 피싱 유형 16가지를 바탕으로 그에 따른 대응 유형을 선택하는 방식으로 구성되었습니다.
+결과 도출 및 위험도 선정 등의 항목에서 주관적 요소가 일부 포함될 수 있음을 알려드립니다.]`}
           </motion.p>
 
           <div style={{ marginTop: 20 }}>

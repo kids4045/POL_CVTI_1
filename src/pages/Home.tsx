@@ -236,7 +236,6 @@ export default function StartPage() {
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <header className="home-hero" aria-label="CVTI test title">
-          <span className="title-eyebrow">GNPOL</span>
           <h1 className="page-title">피싱 유형 PVTI 테스트</h1>
           <p className="page-subtitle">지금 당신의 PVTI는 얼마나 안전한가요?</p>
           <div className="title-divider" />
