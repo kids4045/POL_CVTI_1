@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 
 import { scamTypeProfiles } from "../data/scamTypeProfiles";
 import { scamTypeIcons } from "../data/scamTypeIcons";
-import scamIcons from "../data/scamIcons";
 import { getScamTypeFromCVTI } from "../data/cvtiToScamType";
 import ResultCaptureCard from "../components/ResultCaptureCard";
 
@@ -142,10 +141,11 @@ const Result: React.FC = () => {
           style={{
             fontSize: "clamp(18px, 5vw, 24px)",
             marginBottom: "12px",
+            marginTop: 8,
             color: "#FF6B6B",
           }}
         >
-          당신의 범죄 취약 CVTI는 <strong>{cvti}</strong>!
+          당신의 범죄 취약 PVTI는 <strong>{cvti}</strong>!
         </h2>
 
         {/* 🔹 CVTI 축 의미 안내 */}
@@ -177,18 +177,6 @@ const Result: React.FC = () => {
             <strong>O</strong>: Unconcern (무관심형)
           </p>
         </div>
-
-        {/* 👤 유형별 아이콘 이미지 */}
-        <img
-          src={scamIcons[scamType]}
-          alt={`${scamType} 아이콘`}
-          style={{
-            width: "120px",
-            height: "auto",
-            margin: "0 auto 16px",
-            display: "block",
-          }}
-        />
 
         <h3
           style={{ fontSize: "clamp(16px, 4.5vw, 20px)", marginBottom: "24px" }}

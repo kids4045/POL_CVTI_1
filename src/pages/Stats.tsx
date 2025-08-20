@@ -452,7 +452,7 @@ const Stats: React.FC = () => {
             >
               <Bar
                 data={codeChartData}
-                options={chartOptions("CVTI(코드) 유형별 응답 수")}
+                options={chartOptions("PVTI(코드) 유형별 응답 수")}
               />
             </div>
 

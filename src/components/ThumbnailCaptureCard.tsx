@@ -209,7 +209,7 @@ const ThumbnailCaptureCard: React.FC<Props> = ({
               maxWidth: "100%",
             }}
           >
-            #사기예방 #CVTI테스트 #{scamType.replace(/\s/g, "")} #경찰청
+            #사기예방 #PVTI테스트 #{scamType.replace(/\s/g, "")} #경찰청
           </div>
         </div>
       </div>

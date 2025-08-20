@@ -68,7 +68,7 @@ export default function GuidePage() {
           transition={{ delay: 0.1, duration: 0.4 }}
           className="guide-title"
         >
-          피싱 유형 CVTI 테스트
+          피싱 유형 PVTI 테스트
         </motion.h1>
         <motion.h2
           initial={{ opacity: 0, y: -8 }}
@@ -76,7 +76,7 @@ export default function GuidePage() {
           transition={{ delay: 0.16, duration: 0.4 }}
           className="guide-subtitle"
         >
-          지금 당신의 CVTI는 얼마나 안전한가요?
+          지금 당신의 PVTI는 얼마나 안전한가요?
         </motion.h2>
       </header>
 

@@ -14,4 +14,4 @@ root.render(
   </React.StrictMode>
 );
 
-document.title = "CVTI 테스트";
+document.title = "PVTI 테스트";

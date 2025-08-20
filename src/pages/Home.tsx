@@ -223,7 +223,7 @@ export default function StartPage() {
       <div className="start-header">
         <div className="start-guide">
           {
-            "CVTI 테스트란? \nT/Q 신뢰·의심, S/N 감각·직관, P/G 개방·방어, J/P 판단·인식, O 무관심\n5가지 축을 바탕으로 사용자의 범죄취약유형을 예상할 수 있습니다."
+            "PVTI 테스트란? \nT/Q 신뢰·의심, S/N 감각·직관, P/G 개방·방어, J/P 판단·인식, O 무관심\n5가지 축을 바탕으로 사용자의 범죄취약유형을 예상할 수 있습니다."
           }
         </div>
       </div>
@@ -237,8 +237,8 @@ export default function StartPage() {
       >
         <header className="home-hero" aria-label="CVTI test title">
           <span className="title-eyebrow">GNPOL</span>
-          <h1 className="page-title">피싱 유형 CVTI 테스트</h1>
-          <p className="page-subtitle">지금 당신의 CVTI는 얼마나 안전한가요?</p>
+          <h1 className="page-title">피싱 유형 PVTI 테스트</h1>
+          <p className="page-subtitle">지금 당신의 PVTI는 얼마나 안전한가요?</p>
           <div className="title-divider" />
         </header>
 

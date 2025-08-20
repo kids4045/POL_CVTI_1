@@ -309,7 +309,7 @@ const Share: React.FC = () => {
                 whiteSpace: "nowrap",
               }}
             >
-              <span>CVTI</span>
+              <span>PVTI</span>
               <strong>{cvti}</strong>
               {oAxesCount != null && (
                 <span style={{ opacity: 0.7, marginLeft: 6 }}>
