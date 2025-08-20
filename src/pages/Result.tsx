@@ -376,7 +376,6 @@ const Result: React.FC = () => {
   </div>
 </div>
       </motion.div>
-      <div>[GUIDE_MARK_2025-08-20-1]</div>
     </div>
   );
 };
