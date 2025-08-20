@@ -914,3 +914,55 @@ html {
     padding-bottom: 10px !important;
   }
 }
+
+/* ===== Spacing tweaks: Home & Guide ===== */
+
+/* 1) Home: '사기 1초전' 콜아웃 ↔ '참여하기' 버튼 간격 축소 */
+.start-main .home-callout {
+  margin-bottom: 10px !important; /* 기존 18px → 10px */
+}
+.start-main .cta-row {
+  margin-top: 4px !important; /* 버튼 위 여백 최소화 */
+}
+
+/* 모바일에서는 더 타이트하게 */
+@media (max-width: 480px) {
+  .start-main .home-callout {
+    margin-bottom: 8px !important;
+  }
+  .start-main .cta-row {
+    margin-top: 2px !important;
+  }
+}
+
+/* 2) Guide: 전체 콘텐츠를 조금 위로 */
+.guide-header {
+  padding-top: 110px !important; /* 기존보다 위로 당김 (예: 140px → 110px) */
+}
+.guide-main {
+  justify-content: flex-start !important; /* 중앙 → 상단 정렬 */
+  padding-top: 12px !important; /* 안내 박스 위 여백 축소 */
+}
+.guide-footer {
+  padding-top: 12px !important; /* 하단 문구 위아래 여백 축소 */
+  padding-bottom: 14px !important;
+}
+
+/* 모바일에선 더 과감히 축소 */
+@media (max-width: 768px) {
+  .guide-header {
+    padding-top: 96px !important;
+  }
+}
+@media (max-width: 480px) {
+  .guide-header {
+    padding-top: 72px !important;
+  }
+  .guide-main {
+    padding-top: 8px !important;
+  }
+  .guide-footer {
+    padding-top: 8px !important;
+    padding-bottom: 10px !important;
+  }
+}
