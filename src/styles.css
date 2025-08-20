@@ -646,22 +646,26 @@ body {
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  background: #ffd400; /* 경고/주의를 연상시키는 명도 높은 노랑 */
-  color: #222;
-  box-shadow: 0 0 0 rgba(255, 212, 0, 0);
+
+  /* ▶ base 파랑 */
+  background: #3b82f6; /* blue-500 */
+  color: #fff;
+
+  box-shadow: 0 0 0 rgba(59, 130, 246, 0);
   transition: transform 140ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
 .cvti-neon-btn:hover {
   transform: translateY(-1px) scale(1.015);
-  box-shadow: 0 0 10px rgba(255, 212, 0, 0.65), 0 0 22px rgba(255, 212, 0, 0.45),
-    0 0 40px rgba(255, 212, 0, 0.25);
+  /* ▶ 네온 글로우를 블루로 */
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.65),
+    0 0 22px rgba(59, 130, 246, 0.45), 0 0 40px rgba(59, 130, 246, 0.25);
   filter: brightness(1.05);
 }
 
 .cvti-neon-btn:active {
   transform: translateY(0) scale(0.99);
-  box-shadow: 0 0 8px rgba(255, 212, 0, 0.5), 0 0 16px rgba(255, 212, 0, 0.35);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(59, 130, 246, 0.35);
 }
 
 .cvti-neon-btn:focus-visible {

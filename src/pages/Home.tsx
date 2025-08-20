@@ -108,12 +108,12 @@ export default function StartPage() {
         .cta-row { display: flex; justify-content: center; }
         .cta-primary {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 14px 28px; border-radius: 999px; border: none; cursor: pointer;
-          background: radial-gradient(120px 60px at 50% 50%, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
-          color: #fff; font-weight: 700; font-size: 16px;
+          padding: 14px 28px; border-radius: 999px; border: 1px solid rgba(59,130,246,0.5); cursor: pointer;
+          background: linear-gradient(180deg, rgba(59,130,246,0.95), rgba(37,99,235,0.95));
+          color: #fff; font-weight: 700; font-size: 16px; min-height: 48px;
           min-height: 48px;
-          box-shadow: 0 8px 28px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.16);
-          transition: transform .2s ease;
+          box-shadow: 0 8px 28px rgba(37,99,235,.28), inset 0 0 0 1px rgba(255,255,255,.12);
+  transition: transform .2s ease, filter .2s ease;
         }
         .cta-primary:hover { transform: translateY(-1px); }
         .cta-arrow { font-size: 18px; }
