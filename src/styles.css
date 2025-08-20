@@ -894,8 +894,23 @@ html {
 }
 
 /* 모바일은 더 여유를 줘서 잘림 방지 */
+/* ===== GuidePage: 모바일 간격 타이트닝 ===== */
 @media (max-width: 480px) {
-  .campaign-banner {
-    aspect-ratio: 2.4 / 1;
+  /* 중앙 안내 영역을 '상단 정렬 + 여유 공간 차지 X' 로 변경 */
+  .guide-main {
+    flex: 0 0 auto !important; /* flex:1 → 여유 공간 차지하지 않음 */
+    justify-content: flex-start !important; /* 가운데 정렬 → 상단 정렬 */
+    align-items: center !important;
+    padding-top: 8px !important; /* 필요 시 0~12px 사이로 조절 */
+    padding-bottom: 12px !important;
+  }
+
+  /* 타이틀 아래 여백이 여전히 크면, 필요시 한 단계 더 줄임 (선택) */
+  /* .guide-title { margin-bottom: 12px; } */
+
+  /* 하단 캠페인 문구 패딩 축소 */
+  .guide-footer {
+    padding-top: 8px !important;
+    padding-bottom: 10px !important;
   }
 }

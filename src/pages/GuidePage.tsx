@@ -74,6 +74,7 @@ export default function GuidePage() {
 
       {/* 중앙 안내 패널 */}
       <div
+        className="guide-main"
         style={{
           flex: 1,
           display: "flex",
@@ -123,6 +124,7 @@ export default function GuidePage() {
 
       {/* 하단 고정 문구 */}
       <footer
+        className="guide-footer"
         aria-label="캠페인 안내"
         style={{
           width: "100%",
