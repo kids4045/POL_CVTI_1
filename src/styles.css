@@ -966,3 +966,21 @@ html {
     padding-bottom: 10px !important;
   }
 }
+
+/* ===== Guide: desktop centering fix ===== */
+@media (min-width: 769px) {
+  /* 가로는 가운데, 세로는 상단으로 */
+  .guide-main {
+    justify-content: center !important; /* ← LEFT가 아닌 CENTER */
+    align-items: flex-start !important; /* 세로 상단 정렬 */
+    padding-top: 16px !important; /* 필요 시 8~20px 사이로 조정 */
+  }
+
+  /* 여백 살짝 정리(선택) */
+  .guide-header {
+    padding-top: 96px !important;
+  } /* 너무 내려왔으면 90~110px에서 조정 */
+  .guide-footer {
+    padding-top: 12px !important;
+  }
+}
