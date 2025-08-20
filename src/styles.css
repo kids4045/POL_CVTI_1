@@ -950,6 +950,9 @@ html {
 .guide-footer {
   padding-top: 12px !important; /* 하단 문구 위아래 여백 축소 */
   padding-bottom: 14px !important;
+
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 /* 모바일에선 더 과감히 축소 */
@@ -968,6 +971,9 @@ html {
   .guide-footer {
     padding-top: 8px !important;
     padding-bottom: 10px !important;
+
+    font-size: 13px;
+    line-height: 1.45;
   }
 }
 
@@ -1045,6 +1051,7 @@ html {
 
 /* 데스크톱: 더 크고 선명하게 */
 @media (min-width: 1024px) {
+  .guide-footer { font-size: 15px; } 
   .q-prev-fab {
     left: 18px;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
