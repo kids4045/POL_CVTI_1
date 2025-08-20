@@ -323,6 +323,13 @@ const Question: React.FC = () => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
+          /* ▼ CSS가 없어도 보이도록 강제 고정 위치(폴백) */
+          style={{
+            position: "fixed",
+            left: 12,
+            bottom: 12,
+            zIndex: 10000,
+          }}
         >
           ◀ 이전
         </motion.button>
