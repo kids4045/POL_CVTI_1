@@ -338,7 +338,7 @@ export default function StartPage() {
             onClick={() => navigate("/guide")}
             aria-label="안내 페이지로 이동"
           >
-            시작하기
+            참여하기
             <span className="cta-arrow" aria-hidden>
               ⇛
             </span>
