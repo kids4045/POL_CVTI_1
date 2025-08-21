@@ -371,8 +371,8 @@ const Result: React.FC = () => {
   <div>이 캠페인은 경남경찰청과 함께합니다</div>
 
   {/* ⬇️ 추가 줄 */}
-  <div style={{ marginTop: 6, fontSize: "12px", opacity: 0.8 }}>
-    [본 테스트의 무단 복제, 변경, 배포는 법적 제재를 받을 수 있습니다.]
+  <div style={{ marginTop: 6, fontSize: "10px", opacity: 0.8 }}>
+    [무단 복제, 변경, 배포는 법적 제재를 받을 수 있습니다.]
   </div>
 </div>
       </motion.div>

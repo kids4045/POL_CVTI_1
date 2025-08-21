@@ -74,70 +74,81 @@ export default function GuidePage() {
 
       {/* 중앙 안내 패널 */}
       <div
-        className="guide-main"
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "24px",
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
-          style={{
-            width: "min(720px, 92%)",
-            background: "rgba(0,0,0,0.55)",
-            color: "#fff",
-            borderRadius: 16,
-            padding: "28px 22px",
-            boxShadow: "0 10px 28px rgba(0,0,0,0.35)",
-            backdropFilter: "blur(2px)",
-            textAlign: "center",
-          }}
-        >
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.35 }}
-            className="guide-disclaimer"
-            style={{ fontSize: "18px", fontWeight: 600, margin: "0 0 18px 0" }}
-          >
-            {`[본 테스트는 '피싱사기'의 경각심을 높이기 위해 제작되었으며,
+  className="guide-main"
+  style={{
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px",
+  }}
+>
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.45, ease: "easeOut" }}
+    style={{
+      /* ⬇️ 중앙 고정 핵심 */
+      margin: "0 auto",
+      width: "min(720px, 92%)",
+      boxSizing: "border-box",
+
+      /* 좌우 동일 padding */
+      padding: "28px 22px",
+
+      background: "rgba(0,0,0,0.55)",
+      color: "#fff",
+      borderRadius: 16,
+      boxShadow: "0 10px 28px rgba(0,0,0,0.35)",
+      backdropFilter: "blur(2px)",
+      textAlign: "center",
+    }}
+  >
+    <motion.p
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, duration: 0.35 }}
+      className="guide-disclaimer"
+      style={{
+        fontSize: "18px",
+        fontWeight: 600,
+        margin: "0 0 18px 0",
+        whiteSpace: "pre-line", /* 줄바꿈(\n) 반영 */
+      }}
+    >
+      {`본 테스트는 '피싱사기'의 경각심을 높이기 위해 제작되었으며,
 최근 알려진 피싱 유형 16가지를 바탕으로 그에 따른 대응 유형을 선택하는 방식으로 구성되었습니다.
-결과 도출 및 위험도 선정 등의 항목에서 주관적 요소가 일부 포함될 수 있음을 알려드립니다.]`}
-          </motion.p>
+결과 도출 및 위험도 선정 등의 항목에서 주관적 요소가 일부 포함될 수 있음을 알려드립니다.`}
+    </motion.p>
 
-          <div style={{ marginTop: 20 }}>
-            <button
-              className="cvti-neon-btn"
-              onClick={handleStart}
-              aria-label="테스트 시작하기"
-            >
-              테스트 시작하기
-            </button>
-          </div>
-        </motion.div>
-      </div>
-
+    <div style={{ marginTop: 20 }}>
+      <button
+        className="cvti-neon-btn"
+        onClick={handleStart}
+        aria-label="테스트 시작하기"
+      >
+        테스트 시작하기
+      </button>
+    </div>
+  </motion.div>
+</div>
       {/* 하단 고정 문구 */}
       <footer
-        className="guide-footer"
-        aria-label="캠페인 안내"
-        style={{
-          width: "100%",
-          textAlign: "center",
-          color: "#fff",
-          textShadow: "0 2px 6px rgba(0,0,0,0.5)",
-          padding: "18px 10px 24px",
-          fontWeight: 600,
-        }}
-      >
-        [테스트는 경남경찰청 유튜브, 인스타그램, 블로그에서 배포됩니다.<br />
-이외의 경로를 통해 진입 시, 링크를 다시 한 번 확인하시기 바랍니다.]
-      </footer>
+  className="guide-footer"
+  aria-label="캠페인 안내"
+  style={{
+    width: "100%",
+    textAlign: "center",
+    color: "#fff",
+    textShadow: "0 2px 6px rgba(0,0,0,0.5)",
+    padding: "18px 10px 24px",
+    fontWeight: 600,
+    whiteSpace: "pre-line",   // 추가
+  }}
+>
+  {`테스트는 경남경찰청 유튜브, 인스타그램, 블로그에서 배포됩니다.
+이외의 경로를 통해 진입 시, 링크를 다시 한 번 확인하시기 바랍니다.`}
+</footer>
     </div>
   );
 }
