@@ -1,5 +1,5 @@
 // src/pages/Stats.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 
 // Firebase
 import { db, auth } from "../firebase";
@@ -39,14 +39,7 @@ type ResultDoc = {
   timestamp?: unknown; // 레거시 호환
 };
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // 9개 전 유형(무관심형 포함)
 const ALL_TYPES: ScamTypeKey[] = [
@@ -111,11 +104,7 @@ function toRangeTimestamps(startStr?: string, endStr?: string) {
 }
 
 // CSV 다운로드
-function downloadCSV(
-  currentRows: ResultDoc[],
-  startStr?: string,
-  endStr?: string
-) {
+function downloadCSV(currentRows: ResultDoc[], startStr?: string, endStr?: string) {
   const header = ["createdAt(KST)", "cvti", "scamType", "risk"];
   const lines = [header.join(",")];
 
@@ -131,15 +120,16 @@ function downloadCSV(
     lines.push(fields.join(","));
   });
 
-  const blob = new Blob([lines.join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `cvti_results_${startStr || "all"}_${endStr || "all"}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+const TOP_N_DEFAULT = 15;
+const PAGE_SIZE_DEFAULT = 20;
 
 const Stats: React.FC = () => {
   // 로딩/에러 상태
@@ -157,10 +147,7 @@ const Stats: React.FC = () => {
   const [codeCounts, setCodeCounts] = useState<Record<string, number>>({});
   // 사기 성향 유형별 카운트(9개 고정)
   const [scamCounts, setScamCounts] = useState<Record<ScamTypeKey, number>>(
-    Object.fromEntries(ALL_TYPES.map((t) => [t, 0])) as Record<
-      ScamTypeKey,
-      number
-    >
+    Object.fromEntries(ALL_TYPES.map((t) => [t, 0])) as Record<ScamTypeKey, number>
   );
   const [total, setTotal] = useState(0);
   const [latest, setLatest] = useState<{
@@ -168,6 +155,11 @@ const Stats: React.FC = () => {
     scamType: ScamTypeKey | "알 수 없음";
     timestamp: string;
   } | null>(null);
+
+  // Top-N / 전체보기 + 페이지네이션 상태 (PVTI 코드 그래프용)
+  const [showAllCodes, setShowAllCodes] = useState(false);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_DEFAULT);
+  const [page, setPage] = useState<number>(1);
 
   // 데이터 로딩(기간 변경 시 재조회)
   useEffect(() => {
@@ -183,7 +175,7 @@ const Stats: React.FC = () => {
         if (to) conds.push(where("createdAt", "<=", to));
         // 범위조건 있으면 동일 필드 orderBy 필수
         conds.push(orderBy("createdAt", "desc"));
-        conds.push(limit(2000));
+        conds.push(limit(5000));
 
         const snap = await getDocs(query(ref, ...conds));
         const list: ResultDoc[] = snap.docs.map((d) => d.data() as ResultDoc);
@@ -201,10 +193,7 @@ const Stats: React.FC = () => {
           codeMap[code] = (codeMap[code] || 0) + 1;
 
           let t: ScamTypeKey | null = null;
-          if (
-            data.scamType &&
-            ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)
-          ) {
+          if (data.scamType && ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)) {
             t = data.scamType as ScamTypeKey;
           } else {
             const calc = getScamTypeFromCVTI(code);
@@ -222,8 +211,7 @@ const Stats: React.FC = () => {
         if (first) {
           const rawCode = String(first.cvti ?? first.mbti ?? "");
           const derived: ScamTypeKey | "알 수 없음" =
-            (first.scamType &&
-            ALL_TYPES.includes(String(first.scamType) as ScamTypeKey)
+            (first.scamType && ALL_TYPES.includes(String(first.scamType) as ScamTypeKey)
               ? (first.scamType as ScamTypeKey)
               : getScamTypeFromCVTI(rawCode)) || "알 수 없음";
 
@@ -237,6 +225,10 @@ const Stats: React.FC = () => {
         } else {
           setLatest(null);
         }
+
+        // 범위 변경 시 페이지 리셋
+        setPage(1);
+        setShowAllCodes(false);
       } catch (e: any) {
         console.error("stats load error:", e?.code, e?.message);
         setErr(`${e?.code || "error"}: ${e?.message || ""}`);
@@ -246,15 +238,34 @@ const Stats: React.FC = () => {
     })();
   }, [start, end]);
 
-  // 코드(CVTI/MBTI) 차트 데이터 (알파벳순)
-  const codeLabels = useMemo(
-    () => Object.keys(codeCounts).sort(),
-    [codeCounts]
+  // === PVTI 코드(최대 81종)용 가공 ===
+  // 1) 알파벳/사전순보다 "많은 순"이 관찰/운영에 유리 → count desc 정렬
+  const sortedCodes = useMemo(() => {
+    const entries = Object.entries(codeCounts);
+    entries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    return entries;
+  }, [codeCounts]);
+
+  // 2) Top-N 또는 전체 + 페이지네이션
+  const topN = TOP_N_DEFAULT;
+  const totalCodes = sortedCodes.length;
+  const totalPages = Math.max(1, Math.ceil(totalCodes / pageSize));
+
+  const pagedEntries = useMemo(() => {
+    if (!showAllCodes) return sortedCodes.slice(0, topN);
+    const startIdx = (page - 1) * pageSize;
+    return sortedCodes.slice(startIdx, startIdx + pageSize);
+  }, [sortedCodes, showAllCodes, page, pageSize]);
+
+  const codeLabels = pagedEntries.map(([label]) => label);
+  const codeValues = pagedEntries.map(([, val]) => val);
+
+  // 3) 그래프 높이(라벨 수에 따라 가변) — 항목당 34px + 여백
+  const codeChartHeight = Math.min(
+    900,
+    Math.max(260, 34 * codeLabels.length + 140)
   );
-  const codeValues = useMemo(
-    () => codeLabels.map((label) => codeCounts[label]),
-    [codeLabels, codeCounts]
-  );
+
   const codeChartData = {
     labels: codeLabels,
     datasets: [
@@ -282,24 +293,27 @@ const Stats: React.FC = () => {
     ],
   };
 
-  // Chart.js v4 옵션
-  const chartOptions = (title: string): ChartOptions<"bar"> => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      title: { display: true, text: title, font: { size: 20 } },
-      tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}명` } },
-    },
-    scales: {
-      x: { type: "category" },
-      y: {
-        type: "linear",
-        beginAtZero: true,
-        ticks: { callback: ((v: unknown) => `${v}명`) as any, precision: 0 },
+  // Chart.js v4 옵션 (세로막대 유지, 컨테이너 높이로 대응)
+  const chartOptions = useCallback(
+    (title: string): ChartOptions<"bar"> => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: title, font: { size: 20 } },
+        tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}명` } },
       },
-    },
-  });
+      scales: {
+        x: { type: "category", ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 } },
+        y: {
+          type: "linear",
+          beginAtZero: true,
+          ticks: { callback: ((v: unknown) => `${v}명`) as any, precision: 0 },
+        },
+      },
+    }),
+    []
+  );
 
   const bgUrl = `${process.env.PUBLIC_URL}/assets/test-background.png`;
 
@@ -316,7 +330,7 @@ const Stats: React.FC = () => {
     >
       <div
         style={{
-          maxWidth: "960px",
+          maxWidth: "1080px",
           margin: "0 auto",
           padding: "clamp(16px, 5vw, 40px)",
           fontFamily: "'Noto Sans KR', sans-serif",
@@ -335,9 +349,7 @@ const Stats: React.FC = () => {
             marginBottom: 12,
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 28px)" }}>
-            📊 실시간 통계
-          </h2>
+          <h2 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 28px)" }}>📊 실시간 통계</h2>
           <button
             onClick={() => signOut(auth)}
             style={{
@@ -366,17 +378,9 @@ const Stats: React.FC = () => {
         >
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <label style={{ fontSize: 13, color: "#475569" }}>시작일</label>
-            <input
-              type="date"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-            />
+            <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
             <label style={{ fontSize: 13, color: "#475569" }}>종료일</label>
-            <input
-              type="date"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-            />
+            <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
@@ -404,11 +408,7 @@ const Stats: React.FC = () => {
           </div>
         </div>
 
-        {loading && (
-          <p style={{ textAlign: "center", fontSize: 14 }}>
-            통계 데이터를 불러오는 중입니다...
-          </p>
-        )}
+        {loading && <p style={{ textAlign: "center", fontSize: 14 }}>통계 데이터를 불러오는 중입니다...</p>}
 
         {err && (
           <p style={{ textAlign: "center", fontSize: 14, color: "#b91c1c" }}>
@@ -432,8 +432,7 @@ const Stats: React.FC = () => {
               </p>
               {latest ? (
                 <p>
-                  <strong>최근 응답자:</strong> {latest.code} ({latest.scamType}
-                  ){" / "}
+                  <strong>최근 응답자:</strong> {latest.code} ({latest.scamType}){" / "}
                   {latest.timestamp}
                 </p>
               ) : (
@@ -441,35 +440,72 @@ const Stats: React.FC = () => {
               )}
             </div>
 
-            {/* 차트: 코드 분포 */}
-            <div
-              style={{
-                width: "100%",
-                minHeight: "320px",
-                overflowX: "auto",
-                paddingBottom: "40px",
-              }}
-            >
-              <Bar
-                data={codeChartData}
-                options={chartOptions("PVTI(코드) 유형별 응답 수")}
-              />
+            {/* 차트: PVTI(코드) 유형별 응답 수 — Top-N + 전체보기(페이지네이션) */}
+            <div style={{ marginTop: 20, marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <strong>PVTI 코드</strong>
+              <span style={{ color: "#6b7280", fontSize: 13 }}>
+                {showAllCodes ? `전체(${totalCodes}종) · 페이지 ${page}/${Math.max(1, totalPages)}` : `Top-${topN} (총 ${totalCodes}종 중)`}
+              </span>
+              <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                {!showAllCodes ? (
+                  <button
+                    onClick={() => setShowAllCodes(true)}
+                    style={{ padding: "6px 10px", border: "1px solid #e5e7eb", background: "#fff" }}
+                    title="전체 보기 (페이지별)"
+                  >
+                    전체 보기
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setShowAllCodes(false)}
+                      style={{ padding: "6px 10px" }}
+                      title="Top-N으로 돌아가기"
+                    >
+                      Top-{topN} 보기
+                    </button>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setPage(1);
+                      }}
+                      title="페이지 크기"
+                    >
+                      {[10, 15, 20, 30, 40, 50].map((n) => (
+                        <option key={n} value={n}>
+                          {n} / 페이지
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      style={{ padding: "6px 10px" }}
+                      title="이전 페이지"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      style={{ padding: "6px 10px" }}
+                      title="다음 페이지"
+                    >
+                      ▶
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* 차트: 사기 성향 분포 */}
-            <div
-              style={{
-                width: "100%",
-                minHeight: "320px",
-                overflowX: "auto",
-                paddingBottom: "40px",
-                marginTop: "60px",
-              }}
-            >
-              <Bar
-                data={scamChartData}
-                options={chartOptions("사기 성향 유형별 응답 수")}
-              />
+            <div style={{ width: "100%", height: codeChartHeight, paddingBottom: "12px" }}>
+              <Bar data={codeChartData} options={chartOptions("PVTI(코드) 유형별 응답 수")} />
+            </div>
+
+            {/* 차트: 사기 성향 분포 (9개 고정) */}
+            <div style={{ width: "100%", minHeight: "320px", paddingBottom: "40px", marginTop: "60px" }}>
+              <Bar data={scamChartData} options={chartOptions("사기 성향 유형별 응답 수")} />
             </div>
           </>
         )}
