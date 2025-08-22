@@ -80,7 +80,7 @@ export const scamTypeProfiles: Record<ScamTypeKey, ScamTypeProfile> = {
       "말보다 마음을 먼저 봄",
     ],
     vulnerabilities: ["지인 사칭 문자/영상", "딥페이크 음성/영상 피싱"],
-    riskLevel: 3,
+    riskLevel: 2,
     slogan: "신뢰는 확인을 통해 더욱 단단해집니다.",
   },
 
@@ -93,7 +93,7 @@ export const scamTypeProfiles: Record<ScamTypeKey, ScamTypeProfile> = {
       "모호한 정보는 판단을 미룸",
     ],
     vulnerabilities: ["링크 열람형 피싱", "‘잠깐이면 돼요’식 절차 사칭"],
-    riskLevel: 2,
+    riskLevel: 1,
     slogan: "모른 척보다 확실한 확인이 \n당신을 지켜줍니다.",
   },
 
@@ -106,7 +106,7 @@ export const scamTypeProfiles: Record<ScamTypeKey, ScamTypeProfile> = {
       "전문적인 말투에 신뢰함",
     ],
     vulnerabilities: ["논리적 설명이 붙은 피싱", "전문기관·AI 사칭형 메시지"],
-    riskLevel: 2,
+    riskLevel: 1,
     slogan: "정보가 많아도, \n진짜는 확인에서 시작됩니다.",
   },
 
@@ -119,7 +119,7 @@ export const scamTypeProfiles: Record<ScamTypeKey, ScamTypeProfile> = {
       "나쁜 사람은 없을 거라 믿음",
     ],
     vulnerabilities: ["감성 후원 사칭 피싱", "사기 피해자 사칭형 접근"],
-    riskLevel: 3,
+    riskLevel: 2,
     slogan: "착한 마음, 한 번의 확인으로 \n보호받을 수 있습니다.",
   },
 
