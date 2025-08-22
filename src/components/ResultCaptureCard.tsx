@@ -46,7 +46,7 @@ const ResultCaptureCard: React.FC<Props> = ({ mbti, scamType, shapeUrl }) => {
       </blockquote>
 
       <p style={{ fontSize: "14px", marginBottom: "4px" }}>
-        📊 위험도: {profile.riskLevel} (3/5)
+        📊 위험도: {profile.riskLevel}
       </p>
 
       <p
