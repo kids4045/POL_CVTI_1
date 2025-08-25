@@ -29,6 +29,7 @@ import {
 
 // CVTI → ScamType 변환
 import { ScamTypeKey, getScamTypeFromCVTI } from "../data/cvtiToScamType";
+import { __CVTI_DEBUG__ } from "../utils/calculateCVTI";
 
 type ResultDoc = {
   cvti?: string;
@@ -39,7 +40,14 @@ type ResultDoc = {
   timestamp?: unknown; // 레거시 호환
 };
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // 9개 전 유형(무관심형 포함)
 const ALL_TYPES: ScamTypeKey[] = [
@@ -65,6 +73,20 @@ const TYPE_COLORS: Record<ScamTypeKey, string> = {
   선한낙관형: "#facc15",
   무관심형: "#94a3b8",
 };
+
+// 쿼리로 on/off ( ?debug=1 일 때만 보이게 )
+const showDebug =
+  new URLSearchParams(window.location.search).get("debug") === "1";
+
+// Vercel에서 커밋 해시 노출 (둘 중 되는 쪽 사용)
+const commit =
+  (import.meta as any)?.env?.VITE_VERCEL_GIT_COMMIT_SHA ||
+  (process as any)?.env?.REACT_APP_VERCEL_GIT_COMMIT_SHA ||
+  (process as any)?.env?.VERCEL_GIT_COMMIT_SHA ||
+  "";
+
+// 짧게 표시
+const shortSha = commit ? String(commit).slice(0, 7) : "local";
 
 // Timestamp 다양한 형태 → 초(second)로 안전 변환
 function toSeconds(ts: unknown): number | null {
@@ -104,7 +126,11 @@ function toRangeTimestamps(startStr?: string, endStr?: string) {
 }
 
 // CSV 다운로드
-function downloadCSV(currentRows: ResultDoc[], startStr?: string, endStr?: string) {
+function downloadCSV(
+  currentRows: ResultDoc[],
+  startStr?: string,
+  endStr?: string
+) {
   const header = ["createdAt(KST)", "cvti", "scamType", "risk"];
   const lines = [header.join(",")];
 
@@ -120,7 +146,9 @@ function downloadCSV(currentRows: ResultDoc[], startStr?: string, endStr?: strin
     lines.push(fields.join(","));
   });
 
-  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([lines.join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `cvti_results_${startStr || "all"}_${endStr || "all"}.csv`;
@@ -147,7 +175,10 @@ const Stats: React.FC = () => {
   const [codeCounts, setCodeCounts] = useState<Record<string, number>>({});
   // 사기 성향 유형별 카운트(9개 고정)
   const [scamCounts, setScamCounts] = useState<Record<ScamTypeKey, number>>(
-    Object.fromEntries(ALL_TYPES.map((t) => [t, 0])) as Record<ScamTypeKey, number>
+    Object.fromEntries(ALL_TYPES.map((t) => [t, 0])) as Record<
+      ScamTypeKey,
+      number
+    >
   );
   const [total, setTotal] = useState(0);
   const [latest, setLatest] = useState<{
@@ -193,7 +224,10 @@ const Stats: React.FC = () => {
           codeMap[code] = (codeMap[code] || 0) + 1;
 
           let t: ScamTypeKey | null = null;
-          if (data.scamType && ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)) {
+          if (
+            data.scamType &&
+            ALL_TYPES.includes(String(data.scamType) as ScamTypeKey)
+          ) {
             t = data.scamType as ScamTypeKey;
           } else {
             const calc = getScamTypeFromCVTI(code);
@@ -211,7 +245,8 @@ const Stats: React.FC = () => {
         if (first) {
           const rawCode = String(first.cvti ?? first.mbti ?? "");
           const derived: ScamTypeKey | "알 수 없음" =
-            (first.scamType && ALL_TYPES.includes(String(first.scamType) as ScamTypeKey)
+            (first.scamType &&
+            ALL_TYPES.includes(String(first.scamType) as ScamTypeKey)
               ? (first.scamType as ScamTypeKey)
               : getScamTypeFromCVTI(rawCode)) || "알 수 없음";
 
@@ -304,7 +339,10 @@ const Stats: React.FC = () => {
         tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}명` } },
       },
       scales: {
-        x: { type: "category", ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 } },
+        x: {
+          type: "category",
+          ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 },
+        },
         y: {
           type: "linear",
           beginAtZero: true,
@@ -349,7 +387,9 @@ const Stats: React.FC = () => {
             marginBottom: 12,
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 28px)" }}>📊 실시간 통계</h2>
+          <h2 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 28px)" }}>
+            📊 실시간 통계
+          </h2>
           <button
             onClick={() => signOut(auth)}
             style={{
@@ -378,9 +418,17 @@ const Stats: React.FC = () => {
         >
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <label style={{ fontSize: 13, color: "#475569" }}>시작일</label>
-            <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+            <input
+              type="date"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+            />
             <label style={{ fontSize: 13, color: "#475569" }}>종료일</label>
-            <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+            <input
+              type="date"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+            />
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
@@ -408,7 +456,11 @@ const Stats: React.FC = () => {
           </div>
         </div>
 
-        {loading && <p style={{ textAlign: "center", fontSize: 14 }}>통계 데이터를 불러오는 중입니다...</p>}
+        {loading && (
+          <p style={{ textAlign: "center", fontSize: 14 }}>
+            통계 데이터를 불러오는 중입니다...
+          </p>
+        )}
 
         {err && (
           <p style={{ textAlign: "center", fontSize: 14, color: "#b91c1c" }}>
@@ -432,7 +484,8 @@ const Stats: React.FC = () => {
               </p>
               {latest ? (
                 <p>
-                  <strong>최근 응답자:</strong> {latest.code} ({latest.scamType}){" / "}
+                  <strong>최근 응답자:</strong> {latest.code} ({latest.scamType}
+                  ){" / "}
                   {latest.timestamp}
                 </p>
               ) : (
@@ -440,17 +493,61 @@ const Stats: React.FC = () => {
               )}
             </div>
 
+            {showDebug && (
+              <div
+                style={{
+                  margin: "8px 0 12px",
+                  fontSize: 12,
+                  opacity: 0.75,
+                  background: "rgba(0,0,0,0.04)",
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  display: "inline-block",
+                }}
+                aria-label="cvti-engine-info"
+              >
+                <strong>CVTI Engine</strong> · rule=
+                <code>{__CVTI_DEBUG__.O_RULE}</code>
+                {"  "}pForO2=<code>{__CVTI_DEBUG__.DEFAULT_pForO2}</code>
+                {"  "}tie(TQ/SN/PG/JP)=
+                <code>
+                  {__CVTI_DEBUG__.TIE.TQ}/{__CVTI_DEBUG__.TIE.SN}/
+                  {__CVTI_DEBUG__.TIE.PG}/{__CVTI_DEBUG__.TIE.JP}
+                </code>
+                {"  "}commit=<code>{shortSha}</code>
+              </div>
+            )}
+
             {/* 차트: PVTI(코드) 유형별 응답 수 — Top-N + 전체보기(페이지네이션) */}
-            <div style={{ marginTop: 20, marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div
+              style={{
+                marginTop: 20,
+                marginBottom: 12,
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
               <strong>PVTI 코드</strong>
               <span style={{ color: "#6b7280", fontSize: 13 }}>
-                {showAllCodes ? `전체(${totalCodes}종) · 페이지 ${page}/${Math.max(1, totalPages)}` : `Top-${topN} (총 ${totalCodes}종 중)`}
+                {showAllCodes
+                  ? `전체(${totalCodes}종) · 페이지 ${page}/${Math.max(
+                      1,
+                      totalPages
+                    )}`
+                  : `Top-${topN} (총 ${totalCodes}종 중)`}
               </span>
               <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
                 {!showAllCodes ? (
                   <button
                     onClick={() => setShowAllCodes(true)}
-                    style={{ padding: "6px 10px", border: "1px solid #e5e7eb", background: "#fff" }}
+                    style={{
+                      padding: "6px 10px",
+                      border: "1px solid #e5e7eb",
+                      background: "#fff",
+                    }}
                     title="전체 보기 (페이지별)"
                   >
                     전체 보기
@@ -487,7 +584,9 @@ const Stats: React.FC = () => {
                       ◀
                     </button>
                     <button
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page >= totalPages}
                       style={{ padding: "6px 10px" }}
                       title="다음 페이지"
@@ -499,13 +598,32 @@ const Stats: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ width: "100%", height: codeChartHeight, paddingBottom: "12px" }}>
-              <Bar data={codeChartData} options={chartOptions("PVTI(코드) 유형별 응답 수")} />
+            <div
+              style={{
+                width: "100%",
+                height: codeChartHeight,
+                paddingBottom: "12px",
+              }}
+            >
+              <Bar
+                data={codeChartData}
+                options={chartOptions("PVTI(코드) 유형별 응답 수")}
+              />
             </div>
 
             {/* 차트: 사기 성향 분포 (9개 고정) */}
-            <div style={{ width: "100%", minHeight: "320px", paddingBottom: "40px", marginTop: "60px" }}>
-              <Bar data={scamChartData} options={chartOptions("사기 성향 유형별 응답 수")} />
+            <div
+              style={{
+                width: "100%",
+                minHeight: "320px",
+                paddingBottom: "40px",
+                marginTop: "60px",
+              }}
+            >
+              <Bar
+                data={scamChartData}
+                options={chartOptions("사기 성향 유형별 응답 수")}
+              />
             </div>
           </>
         )}
